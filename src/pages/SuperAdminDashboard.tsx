@@ -25,6 +25,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
+  const [showChangeMyPasswordModal, setShowChangeMyPasswordModal] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
 
@@ -42,6 +43,9 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   });
   const [resetPassword, setResetPassword] = useState('');
   const [bulkImportText, setBulkImportText] = useState('');
+  const [myOldPassword, setMyOldPassword] = useState('');
+  const [myNewPassword, setMyNewPassword] = useState('');
+  const [myConfirmPassword, setMyConfirmPassword] = useState('');
 
   // Filtered and paginated users
   const filteredUsers = useMemo(() => {
@@ -117,6 +121,41 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
     setResetPassword('');
     setShowResetPasswordModal(false);
     setResetPasswordUser(null);
+  };
+
+  const handleChangeMyPassword = () => {
+    const { currentUser } = useStore.getState();
+    if (!currentUser) return;
+
+    // Validasi password lama
+    if (myOldPassword !== currentUser.password) {
+      alert('Password lama salah!');
+      return;
+    }
+
+    // Validasi password baru
+    if (!myNewPassword || myNewPassword.length < 6) {
+      alert('Password baru minimal 6 karakter!');
+      return;
+    }
+
+    // Validasi konfirmasi password
+    if (myNewPassword !== myConfirmPassword) {
+      alert('Konfirmasi password tidak cocok!');
+      return;
+    }
+
+    // Update password
+    const { resetUserPassword } = useStore.getState();
+    resetUserPassword(currentUser.username, myNewPassword);
+    
+    // Reset form
+    setMyOldPassword('');
+    setMyNewPassword('');
+    setMyConfirmPassword('');
+    setShowChangeMyPasswordModal(false);
+    
+    alert('Password berhasil diubah!');
   };
 
   const handleToggleActive = (username: string) => {
@@ -270,20 +309,27 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
               <p className="text-xs text-gray-400">Kelola semua user</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setShowChangeMyPasswordModal(true)}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg transition text-sm"
+            >
+              <Key className="w-4 h-4" />
+              <span className="hidden sm:inline">Ubah Password</span>
+            </button>
             <a
               href="#/admin"
-              className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition text-sm"
             >
               <BarChart3 className="w-4 h-4" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </a>
             <button
               onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition text-sm"
             >
               <LogOut className="w-4 h-4" />
-              Logout
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
@@ -771,6 +817,66 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition"
               >
                 Reset Password
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change My Password Modal */}
+      {showChangeMyPasswordModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Ubah Password Saya</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Password Lama</label>
+                <input
+                  type="password"
+                  value={myOldPassword}
+                  onChange={(e) => setMyOldPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  placeholder="Masukkan password lama"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Password Baru</label>
+                <input
+                  type="password"
+                  value={myNewPassword}
+                  onChange={(e) => setMyNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  placeholder="Minimal 6 karakter"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Konfirmasi Password Baru</label>
+                <input
+                  type="password"
+                  value={myConfirmPassword}
+                  onChange={(e) => setMyConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                  placeholder="Ulangi password baru"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowChangeMyPasswordModal(false);
+                  setMyOldPassword('');
+                  setMyNewPassword('');
+                  setMyConfirmPassword('');
+                }}
+                className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleChangeMyPassword}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg transition"
+              >
+                Ubah Password
               </button>
             </div>
           </div>
