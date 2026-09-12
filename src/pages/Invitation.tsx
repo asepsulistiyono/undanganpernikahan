@@ -59,31 +59,53 @@ export default function Invitation() {
     if (savedWishes) setWishes(JSON.parse(savedWishes));
   }, []);
 
+  // Default template data for URL without user parameter
+  const defaultTemplateData: WeddingData = {
+    groomName: 'Ahmad Fauzan',
+    brideName: 'Siti Nurhaliza',
+    groomFather: 'H. Muhammad Rizki',
+    groomMother: 'Hj. Fatimah Az-Zahra',
+    brideFather: 'H. Abdullah Hakim',
+    brideMother: 'Hj. Aisyah Putri',
+    groomParentsAddress: 'Jl. Mawar No. 10, Jakarta Selatan',
+    brideParentsAddress: 'Jl. Melati No. 25, Jakarta Timur',
+    weddingDate: '2025-12-15',
+    weddingTime: '08:00',
+    weddingVenue: 'Masjid Istiqlal',
+    weddingAddress: 'Jl. Taman Wijaya Kusuma, Jakarta Pusat',
+    receptionDate: '2025-12-15',
+    receptionTime: '11:00',
+    receptionVenue: 'Ballroom Hotel Mulia',
+    receptionAddress: 'Jl. Asia Afrika, Senayan, Jakarta Selatan',
+    mapLink: 'https://maps.google.com',
+    coverImage: '',
+    groomPhoto: '',
+    bridePhoto: '',
+    couplePhoto: '',
+    galleryImages: [],
+    story: 'Pertemuan kami dimulai dari sebuah kebetulan yang indah. Dari saling mengenal, kami menemukan bahwa kami saling melengkapi dalam setiap aspek kehidupan. Cinta kami tumbuh seiring waktu, dan kini kami siap melangkah ke jenjang yang lebih serius.',
+    quote: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu istri-istri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya.',
+    quoteSource: 'QS. Ar-Rum: 21',
+    musicUrl: '',
+    bankName: 'Bank Central Asia',
+    bankAccount: '1234567890',
+    bankHolder: 'Ahmad Fauzan',
+    bankName2: 'Bank Mandiri',
+    bankAccount2: '0987654321',
+    bankHolder2: 'Siti Nurhaliza',
+    greeting: 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami.',
+    customFont: 'poppins'
+  };
+
   // Get data for the owner
   const weddingData: WeddingData = ownerUsername
-    ? (store.weddingDataMap[ownerUsername] || {
-        groomName: '', brideName: '', groomFather: '', groomMother: '',
-        brideFather: '', brideMother: '', groomParentsAddress: '', brideParentsAddress: '',
-        weddingDate: '', weddingTime: '', weddingVenue: '', weddingAddress: '',
-        receptionDate: '', receptionTime: '', receptionVenue: '', receptionAddress: '',
-        mapLink: '', coverImage: '', groomPhoto: '', bridePhoto: '', couplePhoto: '',
-        galleryImages: [], story: '', quote: '', quoteSource: '', musicUrl: '',
-        bankName: '', bankAccount: '', bankHolder: '', bankName2: '', bankAccount2: '', bankHolder2: '',
-        greeting: '', customFont: 'poppins'
-      })
-    : { groomName: '', brideName: '', groomFather: '', groomMother: '',
-        brideFather: '', brideMother: '', groomParentsAddress: '', brideParentsAddress: '',
-        weddingDate: '', weddingTime: '', weddingVenue: '', weddingAddress: '',
-        receptionDate: '', receptionTime: '', receptionVenue: '', receptionAddress: '',
-        mapLink: '', coverImage: '', groomPhoto: '', bridePhoto: '', couplePhoto: '',
-        galleryImages: [], story: '', quote: '', quoteSource: '', musicUrl: '',
-        bankName: '', bankAccount: '', bankHolder: '', bankName2: '', bankAccount2: '', bankHolder2: '',
-        greeting: '', customFont: 'poppins'
-      };
+    ? (store.weddingDataMap[ownerUsername] || defaultTemplateData)
+    : defaultTemplateData;
 
   const selectedTheme = ownerUsername ? (store.themeMap[ownerUsername] || 'elegant-gold') : 'elegant-gold';
-  const isLive = ownerUsername ? (store.liveMap[ownerUsername] || false) : false;
-  const ownerDisplayName = ownerUsername ? store.getUserDisplayName(ownerUsername) : '';
+  // If no ownerUsername (default URL), always show template as live
+  const isLive = ownerUsername ? (store.liveMap[ownerUsername] || false) : true;
+  const ownerDisplayName = ownerUsername ? store.getUserDisplayName(ownerUsername) : 'Wedding Template';
 
   const theme = themes.find(t => t.id === selectedTheme) || themes[0];
   const bodyFont = availableFonts.find(f => f.id === weddingData.customFont) || availableFonts[0];
@@ -149,8 +171,8 @@ export default function Invitation() {
     );
   }
 
-  // If no owner found or not live
-  if (!ownerUsername || (!isLive && !store.isAuthenticated)) {
+  // If owner exists but not live (and not authenticated)
+  if (ownerUsername && !isLive && !store.isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
         <div className="text-center px-6">
