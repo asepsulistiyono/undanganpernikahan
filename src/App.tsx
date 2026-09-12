@@ -19,6 +19,8 @@ function App() {
       const toParam = params.get('to');
       const previewParam = params.get('preview');
 
+      console.log('Route check:', { hash, userParam, toParam, previewParam });
+
       // If ?user=username&preview=true → show invitation preview (no auto-login)
       if (userParam && previewParam === 'true') {
         setCurrentPage('invitation');
@@ -42,9 +44,11 @@ function App() {
           // Auto-login this user
           const loginSuccess = store.login(user.username, user.password);
           console.log('Login success:', loginSuccess);
+          
           // Clean URL completely
           const cleanUrl = window.location.origin + window.location.pathname;
           window.history.replaceState({}, '', cleanUrl);
+          
           // Navigate based on role
           if (user.role === 'super-admin') {
             window.location.hash = '#/super-admin';
@@ -91,7 +95,11 @@ function App() {
 
     checkRoute();
     window.addEventListener('hashchange', checkRoute);
-    return () => window.removeEventListener('hashchange', checkRoute);
+    window.addEventListener('popstate', checkRoute);
+    return () => {
+      window.removeEventListener('hashchange', checkRoute);
+      window.removeEventListener('popstate', checkRoute);
+    };
   }, [isAuthenticated]);
 
   const handleLogin = () => {

@@ -227,9 +227,33 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   };
 
   const copyUserLink = (username: string) => {
-    const url = `${window.location.origin}${window.location.pathname}?user=${username}`;
-    navigator.clipboard.writeText(url);
-    alert(`Link copied: ${url}`);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?user=${username}`;
+    
+    // Fallback untuk mobile yang tidak support clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        alert(`Link berhasil disalin:\n${url}`);
+      }).catch(() => {
+        // Fallback: buat textarea untuk copy manual
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          alert(`Link berhasil disalin:\n${url}`);
+        } catch (err) {
+          alert(`Link undangan:\n${url}`);
+        }
+        document.body.removeChild(textArea);
+      });
+    } else {
+      // Fallback untuk browser lama
+      alert(`Link undangan:\n${url}`);
+    }
   };
 
   return (

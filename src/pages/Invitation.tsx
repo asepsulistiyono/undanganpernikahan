@@ -24,15 +24,27 @@ export default function Invitation() {
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const to = params.get('to');
-    const user = params.get('user');
-    if (to) setGuestName(decodeURIComponent(to));
+    // Parse URL parameters - compatible with mobile browsers
+    const urlParams = new URLSearchParams(window.location.search);
+    const to = urlParams.get('to');
+    const user = urlParams.get('user');
+    
+    console.log('Invitation page loaded:', { to, user, search: window.location.search });
+    
+    if (to) {
+      try {
+        setGuestName(decodeURIComponent(to));
+      } catch (e) {
+        setGuestName(to);
+      }
+    }
 
     // Determine which user's invitation to show
     if (user) {
       // Check if user exists and is active
       const foundUser = store.users.find(u => u.username === user);
+      console.log('Found user for invitation:', foundUser);
+      
       if (!foundUser) {
         setErrorMessage(`User "${user}" tidak ditemukan`);
       } else if (!foundUser.isActive) {
@@ -47,7 +59,13 @@ export default function Invitation() {
 
     // Load wishes
     const savedWishes = localStorage.getItem('wedding-wishes');
-    if (savedWishes) setWishes(JSON.parse(savedWishes));
+    if (savedWishes) {
+      try {
+        setWishes(JSON.parse(savedWishes));
+      } catch (e) {
+        console.error('Error loading wishes:', e);
+      }
+    }
   }, []);
 
   // Default template data for URL without user parameter
