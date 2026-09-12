@@ -3,8 +3,9 @@ import { useStore } from './store/useStore';
 import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import Invitation from './pages/Invitation';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
-type Page = 'invitation' | 'admin-login' | 'dashboard';
+type Page = 'invitation' | 'admin-login' | 'dashboard' | 'super-admin';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('invitation');
@@ -53,8 +54,17 @@ function App() {
         }
       }
 
+      // Super Admin routes
+      if (hash === '#/super-admin') {
+        const store = useStore.getState();
+        if (isAuthenticated && store.currentUser?.role === 'super-admin') {
+          setCurrentPage('super-admin');
+        } else {
+          setCurrentPage('admin-login');
+        }
+      }
       // Admin routes
-      if (hash === '#/admin') {
+      else if (hash === '#/admin') {
         if (isAuthenticated) {
           setCurrentPage('dashboard');
         } else {
@@ -72,7 +82,14 @@ function App() {
   }, [isAuthenticated]);
 
   const handleLogin = () => {
-    setCurrentPage('dashboard');
+    const store = useStore.getState();
+    if (store.currentUser?.role === 'super-admin') {
+      window.location.hash = '#/super-admin';
+      setCurrentPage('super-admin');
+    } else {
+      window.location.hash = '#/admin';
+      setCurrentPage('dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -90,6 +107,8 @@ function App() {
       return <AdminLogin onLogin={handleLogin} />;
     case 'dashboard':
       return <Dashboard onLogout={handleLogout} />;
+    case 'super-admin':
+      return <SuperAdminDashboard onLogout={handleLogout} />;
     default:
       return <Invitation />;
   }
