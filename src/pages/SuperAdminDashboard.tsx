@@ -12,8 +12,7 @@ interface Props {
 }
 
 export default function SuperAdminDashboard({ onLogout }: Props) {
-  const store = useStore();
-  const users = store.users;
+  const users = useStore(s => s.users);
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,15 +29,19 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
 
   // Form State
-  const [newUser, setNewUser] = useState({
+  const [newUser, setNewUser] = useState<{
+    username: string;
+    password: string;
+    displayName: string;
+    role: 'user' | 'super-admin';
+  }>({
     username: '',
     password: '',
     displayName: '',
-    role: 'user' as 'user' | 'super-admin'
+    role: 'user'
   });
   const [resetPassword, setResetPassword] = useState('');
   const [bulkImportText, setBulkImportText] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
   // Filtered and paginated users
   const filteredUsers = useMemo(() => {
@@ -75,7 +78,13 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
       alert('Username, password, dan display name harus diisi');
       return;
     }
-    const success = store.createUser(newUser);
+    const { createUser } = useStore.getState();
+    const success = createUser({
+      username: newUser.username,
+      password: newUser.password,
+      displayName: newUser.displayName,
+      role: newUser.role
+    });
     if (success) {
       setNewUser({ username: '', password: '', displayName: '', role: 'user' });
       setShowAddModal(false);
@@ -86,7 +95,8 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
 
   const handleEditUser = () => {
     if (!editingUser) return;
-    store.updateUser(editingUser.username, {
+    const { updateUser } = useStore.getState();
+    updateUser(editingUser.username, {
       displayName: editingUser.displayName,
       role: editingUser.role
     });
@@ -96,14 +106,16 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
 
   const handleResetPassword = () => {
     if (!resetPasswordUser || !resetPassword) return;
-    store.resetUserPassword(resetPasswordUser.username, resetPassword);
+    const { resetUserPassword } = useStore.getState();
+    resetUserPassword(resetPasswordUser.username, resetPassword);
     setResetPassword('');
     setShowResetPasswordModal(false);
     setResetPasswordUser(null);
   };
 
   const handleToggleActive = (username: string) => {
-    store.toggleUserActive(username);
+    const { toggleUserActive } = useStore.getState();
+    toggleUserActive(username);
   };
 
   const handleDeleteUser = (username: string) => {
@@ -112,7 +124,8 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
       return;
     }
     if (confirm(`Hapus user "${username}"? Semua data undangan akan dihapus.`)) {
-      store.deleteUser(username);
+      const { deleteUser } = useStore.getState();
+      deleteUser(username);
     }
   };
 
@@ -141,26 +154,29 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
       return;
     }
     if (confirm(`Hapus ${selected.length} user yang dipilih?`)) {
-      selected.forEach(username => store.deleteUser(username));
+      const { deleteUser } = useStore.getState();
+      selected.forEach(username => deleteUser(username));
       setSelectedUsers(new Set());
     }
   };
 
   const handleBulkActivate = () => {
+    const { toggleUserActive } = useStore.getState();
     Array.from(selectedUsers).forEach(username => {
       const user = users.find(u => u.username === username);
       if (user && !user.isActive) {
-        store.toggleUserActive(username);
+        toggleUserActive(username);
       }
     });
     setSelectedUsers(new Set());
   };
 
   const handleBulkDeactivate = () => {
+    const { toggleUserActive } = useStore.getState();
     Array.from(selectedUsers).forEach(username => {
       const user = users.find(u => u.username === username);
       if (user && user.isActive) {
-        store.toggleUserActive(username);
+        toggleUserActive(username);
       }
     });
     setSelectedUsers(new Set());
@@ -170,11 +186,12 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
     const lines = bulkImportText.split('\n').filter(l => l.trim());
     let successCount = 0;
     let failCount = 0;
+    const { createUser } = useStore.getState();
 
     lines.forEach(line => {
       const parts = line.split(/[,;\t]/).map(p => p.trim());
       if (parts.length >= 3) {
-        const success = store.createUser({
+        const success = createUser({
           username: parts[0],
           password: parts[1],
           displayName: parts[2],
