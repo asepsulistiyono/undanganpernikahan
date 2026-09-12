@@ -51,8 +51,14 @@ function App() {
             setCurrentPage('dashboard');
           }
           return;
+        } else if (user && !user.isActive) {
+          // User exists but inactive
+          alert(`User "${userParam}" tidak aktif. Hubungi administrator.`);
+          setCurrentPage('invitation');
+          return;
         } else {
-          // User not found or inactive - show invitation
+          // User not found
+          alert(`User "${userParam}" tidak ditemukan. Silakan buat user terlebih dahulu di Super Admin Dashboard.`);
           setCurrentPage('invitation');
           return;
         }
