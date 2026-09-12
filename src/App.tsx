@@ -28,7 +28,13 @@ function App() {
       const toParam = params.get('to');
       const previewParam = params.get('preview');
 
-      console.log('Route check:', { hash, userParam, toParam, previewParam });
+      console.log('Route check:', { hash, userParam, toParam, previewParam, isLoading });
+
+      // Wait for Firebase to finish loading
+      if (isLoading) {
+        console.log('Still loading, waiting...');
+        return;
+      }
 
       // If ?user=username&preview=true → show invitation preview (no auto-login)
       if (userParam && previewParam === 'true') {
@@ -110,7 +116,7 @@ function App() {
       window.removeEventListener('hashchange', checkRoute);
       window.removeEventListener('popstate', checkRoute);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   const handleLogin = () => {
     const store = useStore.getState();
