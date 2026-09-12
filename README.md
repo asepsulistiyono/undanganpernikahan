@@ -49,7 +49,7 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 | URL | Fungsi |
 |-----|--------|
 | `yoursite.com/?user=username` | **Auto-login** → Langsung ke dashboard edit data pernikahan |
-| `yoursite.com/?user=username&preview=true` | Preview undangan (tanpa auto-login, view only) |
+| `yoursite.com/?user=username&preview=true` | **Link undangan** → Langsung tampilkan undangan (untuk dibagikan) |
 | `yoursite.com/?user=username&to=NamaTamu` | Menampilkan undangan untuk tamu spesifik |
 | `yoursite.com/` | Menampilkan undangan default (user pertama yang live) |
 | `yoursite.com/#/admin` | Login manual admin panel |
@@ -86,15 +86,16 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 
 ### 4. Akses Undangan
 - **Edit data pernikahan**: `yoursite.com/?user=username` (auto-login, langsung ke dashboard edit)
-- **Preview undangan**: `yoursite.com/?user=username&preview=true` (view only, tanpa auto-login)
+- **Link undangan (Go Live)**: `yoursite.com/?user=username&preview=true` (langsung tampilkan undangan, tanpa auto-login)
 - **Undangan untuk tamu**: `yoursite.com/?user=username&to=NamaTamu`
 - **Undangan default**: `yoursite.com/` (menampilkan undangan user pertama yang live)
 
 ### 5. Link Go Live
 Setelah user klik "Go Live!", sistem akan menampilkan:
-- **Link undangan**: `yoursite.com/?user=username`
+- **Link undangan**: `yoursite.com/?user=username&preview=true`
 - **Atas nama**: Nama display user yang edit (contoh: "Atas nama: Budi Santoso")
 - **Tombol "Salin Link"**: Untuk copy link undangan dengan mudah
+- Link ini langsung menampilkan undangan (bukan dashboard edit)
 
 ### 6. Tamu Menerima Undangan
 1. User menambahkan tamu dengan nama dan nomor WhatsApp
@@ -103,6 +104,11 @@ Setelah user klik "Go Live!", sistem akan menampilkan:
 4. Tamu buka link → melihat undangan dengan nama mereka
 5. Footer undangan menampilkan: "© 2025 Wedding Invitation by [Nama User]"
 6. Tamu bisa RSVP dan kirim ucapan
+
+**Catatan Penting:**
+- Link yang disalin saat "Go Live" menggunakan `&preview=true` agar langsung menampilkan undangan
+- Link untuk tamu menggunakan `&to=NamaTamu` tanpa `&preview=true`
+- Jangan gunakan link Go Live untuk tamu, gunakan fitur "Kirim WA" atau "Copy Link" per tamu
 
 ## 📋 Format Import Tamu Massal
 ```
