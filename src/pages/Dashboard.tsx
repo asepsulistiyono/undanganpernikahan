@@ -34,12 +34,20 @@ export default function Dashboard({ onLogout }: Props) {
   const [editingGuest, setEditingGuest] = useState<string | null>(null);
   const [newGuest, setNewGuest] = useState({ name: '', group: 'Umum', phone: '', tableNumber: '' });
   const [copied, setCopied] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const filteredGuests = guests.filter(g =>
     g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     g.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
     g.phone.includes(searchTerm)
   );
+
+  const updateWeddingDataWithSave = (data: Partial<any>) => {
+    setSaveStatus('saving');
+    store.updateWeddingData(data);
+    setTimeout(() => setSaveStatus('saved'), 300);
+    setTimeout(() => setSaveStatus('idle'), 2000);
+  };
 
   const generateWALink = (guest: typeof guests[0]) => {
     const name = encodeURIComponent(guest.name);
@@ -174,70 +182,93 @@ export default function Dashboard({ onLogout }: Props) {
         {/* Wedding Data Tab */}
         {activeTab === 'wedding' && (
           <div className="bg-white rounded-2xl p-6 shadow-sm border">
-            <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-amber-500" /> Data Mempelai & Acara
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <Heart className="w-5 h-5 text-amber-500" /> Data Mempelai & Acara
+              </h2>
+              <div className="flex items-center gap-3">
+                {/* Save Status Indicator */}
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  saveStatus === 'saving' ? 'bg-blue-100 text-blue-700' :
+                  saveStatus === 'saved' ? 'bg-green-100 text-green-700' :
+                  'bg-gray-100 text-gray-500'
+                }`}>
+                  {saveStatus === 'saving' && <><div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div> Menyimpan...</>}
+                  {saveStatus === 'saved' && <><Check className="w-3 h-3" /> Tersimpan</>}
+                  {saveStatus === 'idle' && <><div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif</>}
+                </div>
+                <a href={window.location.pathname + '?user=' + store.currentUser?.username} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition text-sm font-medium shadow-md">
+                  <Globe className="w-4 h-4" /> Preview
+                </a>
+              </div>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-amber-800">
+                <strong>💡 Tips:</strong> Edit semua data pernikahan Anda di bawah ini. Perubahan akan otomatis tersimpan. Klik "Preview" untuk melihat tampilan undangan.
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4 p-4 bg-blue-50 rounded-xl">
                 <h3 className="font-semibold text-blue-800">🤵 Mempelai Pria</h3>
-                <ImageUpload label="Foto Mempelai Pria" value={weddingData.groomPhoto} onChange={v => store.updateWeddingData({ groomPhoto: v })} />
-                <InputField label="Nama" value={weddingData.groomName} onChange={v => store.updateWeddingData({ groomName: v })} />
-                <InputField label="Nama Ayah" value={weddingData.groomFather} onChange={v => store.updateWeddingData({ groomFather: v })} />
-                <InputField label="Nama Ibu" value={weddingData.groomMother} onChange={v => store.updateWeddingData({ groomMother: v })} />
-                <InputField label="Alamat Orang Tua" value={weddingData.groomParentsAddress} onChange={v => store.updateWeddingData({ groomParentsAddress: v })} />
+                <ImageUpload label="Foto Mempelai Pria" value={weddingData.groomPhoto} onChange={v => updateWeddingDataWithSave({ groomPhoto: v })} />
+                <InputField label="Nama" value={weddingData.groomName} onChange={v => updateWeddingDataWithSave({ groomName: v })} />
+                <InputField label="Nama Ayah" value={weddingData.groomFather} onChange={v => updateWeddingDataWithSave({ groomFather: v })} />
+                <InputField label="Nama Ibu" value={weddingData.groomMother} onChange={v => updateWeddingDataWithSave({ groomMother: v })} />
+                <InputField label="Alamat Orang Tua" value={weddingData.groomParentsAddress} onChange={v => updateWeddingDataWithSave({ groomParentsAddress: v })} />
               </div>
               <div className="space-y-4 p-4 bg-pink-50 rounded-xl">
                 <h3 className="font-semibold text-pink-800">👰 Mempelai Wanita</h3>
-                <ImageUpload label="Foto Mempelai Wanita" value={weddingData.bridePhoto} onChange={v => store.updateWeddingData({ bridePhoto: v })} />
-                <InputField label="Nama" value={weddingData.brideName} onChange={v => store.updateWeddingData({ brideName: v })} />
-                <InputField label="Nama Ayah" value={weddingData.brideFather} onChange={v => store.updateWeddingData({ brideFather: v })} />
-                <InputField label="Nama Ibu" value={weddingData.brideMother} onChange={v => store.updateWeddingData({ brideMother: v })} />
-                <InputField label="Alamat Orang Tua" value={weddingData.brideParentsAddress} onChange={v => store.updateWeddingData({ brideParentsAddress: v })} />
+                <ImageUpload label="Foto Mempelai Wanita" value={weddingData.bridePhoto} onChange={v => updateWeddingDataWithSave({ bridePhoto: v })} />
+                <InputField label="Nama" value={weddingData.brideName} onChange={v => updateWeddingDataWithSave({ brideName: v })} />
+                <InputField label="Nama Ayah" value={weddingData.brideFather} onChange={v => updateWeddingDataWithSave({ brideFather: v })} />
+                <InputField label="Nama Ibu" value={weddingData.brideMother} onChange={v => updateWeddingDataWithSave({ brideMother: v })} />
+                <InputField label="Alamat Orang Tua" value={weddingData.brideParentsAddress} onChange={v => updateWeddingDataWithSave({ brideParentsAddress: v })} />
               </div>
               <div className="space-y-4 p-4 bg-indigo-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-indigo-800 flex items-center gap-2"><Camera className="w-5 h-5" /> Foto</h3>
-                <ImageUpload label="Foto Cover / Hero" value={weddingData.coverImage} onChange={v => store.updateWeddingData({ coverImage: v })} aspectRatio="16/9" />
-                <ImageUpload label="Foto Bersama" value={weddingData.couplePhoto} onChange={v => store.updateWeddingData({ couplePhoto: v })} aspectRatio="4/3" />
+                <ImageUpload label="Foto Cover / Hero" value={weddingData.coverImage} onChange={v => updateWeddingDataWithSave({ coverImage: v })} aspectRatio="16/9" />
+                <ImageUpload label="Foto Bersama" value={weddingData.couplePhoto} onChange={v => updateWeddingDataWithSave({ couplePhoto: v })} aspectRatio="4/3" />
               </div>
               <div className="space-y-4 p-4 bg-green-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-green-800">💒 Akad Nikah</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InputField label="Tanggal" type="date" value={weddingData.weddingDate} onChange={v => store.updateWeddingData({ weddingDate: v })} />
-                  <InputField label="Waktu" type="time" value={weddingData.weddingTime} onChange={v => store.updateWeddingData({ weddingTime: v })} />
+                  <InputField label="Tanggal" type="date" value={weddingData.weddingDate} onChange={v => updateWeddingDataWithSave({ weddingDate: v })} />
+                  <InputField label="Waktu" type="time" value={weddingData.weddingTime} onChange={v => updateWeddingDataWithSave({ weddingTime: v })} />
                 </div>
-                <InputField label="Tempat" value={weddingData.weddingVenue} onChange={v => store.updateWeddingData({ weddingVenue: v })} />
-                <InputField label="Alamat" value={weddingData.weddingAddress} onChange={v => store.updateWeddingData({ weddingAddress: v })} />
+                <InputField label="Tempat" value={weddingData.weddingVenue} onChange={v => updateWeddingDataWithSave({ weddingVenue: v })} />
+                <InputField label="Alamat" value={weddingData.weddingAddress} onChange={v => updateWeddingDataWithSave({ weddingAddress: v })} />
               </div>
               <div className="space-y-4 p-4 bg-purple-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-purple-800">🎉 Resepsi</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InputField label="Tanggal" type="date" value={weddingData.receptionDate} onChange={v => store.updateWeddingData({ receptionDate: v })} />
-                  <InputField label="Waktu" type="time" value={weddingData.receptionTime} onChange={v => store.updateWeddingData({ receptionTime: v })} />
+                  <InputField label="Tanggal" type="date" value={weddingData.receptionDate} onChange={v => updateWeddingDataWithSave({ receptionDate: v })} />
+                  <InputField label="Waktu" type="time" value={weddingData.receptionTime} onChange={v => updateWeddingDataWithSave({ receptionTime: v })} />
                 </div>
-                <InputField label="Tempat" value={weddingData.receptionVenue} onChange={v => store.updateWeddingData({ receptionVenue: v })} />
-                <InputField label="Alamat" value={weddingData.receptionAddress} onChange={v => store.updateWeddingData({ receptionAddress: v })} />
+                <InputField label="Tempat" value={weddingData.receptionVenue} onChange={v => updateWeddingDataWithSave({ receptionVenue: v })} />
+                <InputField label="Alamat" value={weddingData.receptionAddress} onChange={v => updateWeddingDataWithSave({ receptionAddress: v })} />
               </div>
               <div className="space-y-4 p-4 bg-amber-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-amber-800">📖 Kutipan & Cerita</h3>
-                <InputField label="Kutipan" type="textarea" value={weddingData.quote} onChange={v => store.updateWeddingData({ quote: v })} />
-                <InputField label="Sumber" value={weddingData.quoteSource} onChange={v => store.updateWeddingData({ quoteSource: v })} />
-                <InputField label="Cerita Cinta" type="textarea" value={weddingData.story} onChange={v => store.updateWeddingData({ story: v })} />
-                <InputField label="Kata Sambutan" type="textarea" value={weddingData.greeting} onChange={v => store.updateWeddingData({ greeting: v })} />
+                <InputField label="Kutipan" type="textarea" value={weddingData.quote} onChange={v => updateWeddingDataWithSave({ quote: v })} />
+                <InputField label="Sumber" value={weddingData.quoteSource} onChange={v => updateWeddingDataWithSave({ quoteSource: v })} />
+                <InputField label="Cerita Cinta" type="textarea" value={weddingData.story} onChange={v => updateWeddingDataWithSave({ story: v })} />
+                <InputField label="Kata Sambutan" type="textarea" value={weddingData.greeting} onChange={v => updateWeddingDataWithSave({ greeting: v })} />
               </div>
               <div className="space-y-4 p-4 bg-cyan-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-cyan-800">🗺️ Peta & Musik</h3>
-                <InputField label="Link Google Maps" value={weddingData.mapLink} onChange={v => store.updateWeddingData({ mapLink: v })} />
-                <InputField label="URL Musik (mp3)" value={weddingData.musicUrl} onChange={v => store.updateWeddingData({ musicUrl: v })} />
+                <InputField label="Link Google Maps" value={weddingData.mapLink} onChange={v => updateWeddingDataWithSave({ mapLink: v })} />
+                <InputField label="URL Musik (mp3)" value={weddingData.musicUrl} onChange={v => updateWeddingDataWithSave({ musicUrl: v })} />
               </div>
               <div className="space-y-4 p-4 bg-rose-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-rose-800">💝 Amplop Digital</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InputField label="Bank 1 - Nama" value={weddingData.bankName} onChange={v => store.updateWeddingData({ bankName: v })} />
-                  <InputField label="Bank 1 - No. Rekening" value={weddingData.bankAccount} onChange={v => store.updateWeddingData({ bankAccount: v })} />
-                  <InputField label="Bank 1 - Atas Nama" value={weddingData.bankHolder} onChange={v => store.updateWeddingData({ bankHolder: v })} />
-                  <InputField label="Bank 2 - Nama" value={weddingData.bankName2} onChange={v => store.updateWeddingData({ bankName2: v })} />
-                  <InputField label="Bank 2 - No. Rekening" value={weddingData.bankAccount2} onChange={v => store.updateWeddingData({ bankAccount2: v })} />
-                  <InputField label="Bank 2 - Atas Nama" value={weddingData.bankHolder2} onChange={v => store.updateWeddingData({ bankHolder2: v })} />
+                  <InputField label="Bank 1 - Nama" value={weddingData.bankName} onChange={v => updateWeddingDataWithSave({ bankName: v })} />
+                  <InputField label="Bank 1 - No. Rekening" value={weddingData.bankAccount} onChange={v => updateWeddingDataWithSave({ bankAccount: v })} />
+                  <InputField label="Bank 1 - Atas Nama" value={weddingData.bankHolder} onChange={v => updateWeddingDataWithSave({ bankHolder: v })} />
+                  <InputField label="Bank 2 - Nama" value={weddingData.bankName2} onChange={v => updateWeddingDataWithSave({ bankName2: v })} />
+                  <InputField label="Bank 2 - No. Rekening" value={weddingData.bankAccount2} onChange={v => updateWeddingDataWithSave({ bankAccount2: v })} />
+                  <InputField label="Bank 2 - Atas Nama" value={weddingData.bankHolder2} onChange={v => updateWeddingDataWithSave({ bankHolder2: v })} />
                 </div>
               </div>
             </div>
@@ -339,7 +370,7 @@ export default function Dashboard({ onLogout }: Props) {
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Type className="w-5 h-5 text-amber-500" /> Pilih Font
               </h2>
-              <FontSelector label="Font Utama" value={weddingData.customFont} onChange={v => store.updateWeddingData({ customFont: v })} />
+              <FontSelector label="Font Utama" value={weddingData.customFont} onChange={v => updateWeddingDataWithSave({ customFont: v })} />
             </div>
           </div>
         )}
