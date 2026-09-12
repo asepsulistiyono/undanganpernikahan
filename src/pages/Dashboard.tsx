@@ -419,7 +419,7 @@ export default function Dashboard({ onLogout }: Props) {
                   <p className="text-sm text-green-600 mt-1">
                     <span className="font-medium">Link undangan:</span>{' '}
                     <code className="bg-green-100 px-2 py-0.5 rounded break-all">
-                      {window.location.origin}{window.location.pathname}?user={store.currentUser?.username}
+                      {window.location.origin}{window.location.pathname}?user={store.currentUser?.username}&preview=true
                     </code>
                   </p>
                   <p className="text-xs text-green-600 mt-2">
@@ -427,8 +427,8 @@ export default function Dashboard({ onLogout }: Props) {
                   </p>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?user=${store.currentUser?.username}`);
-                      alert('Link berhasil disalin!');
+                      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?user=${store.currentUser?.username}&preview=true`);
+                      alert('Link undangan berhasil disalin!');
                     }}
                     className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition"
                   >
