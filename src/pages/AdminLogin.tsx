@@ -93,9 +93,6 @@ export default function AdminLogin({ onLogin }: Props) {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-slate-400 text-xs">Default: admin / admin123</p>
-          </div>
         </div>
       </div>
     </div>
