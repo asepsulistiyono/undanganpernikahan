@@ -1,135 +1,105 @@
-# 💍 Premium Wedding Invitation Website
+# 💍 Premium Wedding Invitation - Multi-User Platform
 
-Website undangan pernikahan premium dengan fitur lengkap. Dibuat dengan React, Vite, Tailwind CSS, dan Zustand.
+Platform undangan pernikahan premium dengan sistem multi-user. Admin super dapat mengelola ribuan user, dan setiap user memiliki undangan mereka sendiri.
 
 ## ✨ Fitur Utama
 
+### 👑 Super Admin Panel
+- **Buat user baru** - Username, password, dan display name
+- **Kelola ribuan user** - Edit, hapus, aktifkan/nonaktifkan
+- **Reset password** user kapan saja
+- **Lihat password** user (toggle show/hide)
+- **Search** user berdasarkan nama atau username
+- **Statistik** total user aktif
+
+### 👤 User Dashboard (per user)
+- Edit data pernikahan lengkap
+- Upload foto mempelai (auto-compress)
+- Pilih dari 24 tema premium
+- Pilih dari 28+ font modern
+- Manajemen tamu undangan (ribuan)
+- Generate link WhatsApp personal
+- Toggle Go Live/Offline
+
 ### 🎨 24 Tema Premium
-- Elegant Gold, Rustic Blush, Modern Minimalist, Royal Purple
-- Garden Green, Ocean Blue, Sunset Orange, Dark Romance
-- Dusty Rose, Boho Chic, Midnight Star, Tropical Paradise
-- Vintage Cream, Cherry Blossom, Luxury Black, Lavender Dream
-- Earth Tone, Arctic Ice, Copper & Rose, Safari Adventure
-- Pearl White, Emerald Night, Coral Reef, Golden Hour
+Elegant Gold, Rustic Blush, Modern Minimalist, Royal Purple, Garden Green, Ocean Blue, Sunset Orange, Dark Romance, Dusty Rose, Boho Chic, Midnight Star, Tropical Paradise, Vintage Cream, Cherry Blossom, Luxury Black, Lavender Dream, Earth Tone, Arctic Ice, Copper & Rose, Safari Adventure, Pearl White, Emerald Night, Coral Reef, Golden Hour
+
+### 🔤 28+ Font Modern
+Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 
 ### 👥 Manajemen Tamu
-- Tambah tamu satu per satu
-- **Import massal** ribuan tamu sekaligus (format CSV/text)
-- Generate link undangan personal untuk setiap tamu
-- Kirim undangan via WhatsApp (individual & broadcast)
-- Export daftar tamu ke CSV
-- Tracking status kehadiran (RSVP)
+- Import massal ribuan tamu
+- Generate link undangan personal per tamu
+- Kirim via WhatsApp (individual & broadcast)
+- Export CSV
+- Tracking RSVP
 
-### ⚙️ Panel Admin
-- Login dengan username & password
-- Edit data mempelai (nama, orang tua, alamat)
-- Edit detail acara (akad & resepsi)
-- Edit kutipan & cerita cinta
-- Atur amplop digital (2 rekening)
-- Atur peta lokasi & musik
-- Ganti tema undangan
-- Toggle website live/offline
-
-### 💌 Halaman Undangan
-- Cover page elegan dengan animasi
-- Personalisasi nama tamu (via URL parameter)
-- Countdown timer ke hari H
-- Detail akad & resepsi
-- Link Google Maps
-- Amplop digital (copy no. rekening)
-- RSVP konfirmasi kehadiran
-- Ucapan & doa dari tamu
-- Responsive design (mobile & desktop)
+### 💌 Undangan Futuristik
+- Animated orbs & particles
+- Glassmorphism cards
+- Cursor glow effect
+- Grid pattern overlay
+- Neon text effects
+- Responsive design
 
 ## 🚀 Cara Menggunakan
 
-### 1. Akses Admin Panel
-- Buka website dengan menambahkan `#/admin` di URL
-- Contoh: `https://your-domain.com/#/admin`
-- Login default: **admin** / **admin123**
+### 1. Login sebagai Super Admin
+- URL: `yoursite.com/#/admin`
+- Default: **admin** / **admin123**
 
-### 2. Setup Undangan
-1. Login ke admin panel
-2. Isi data pernikahan (nama mempelai, tanggal, venue, dll)
-3. Pilih tema yang diinginkan
+### 2. Buat User Baru
+1. Login sebagai super admin
+2. Klik tab "Kelola User"
+3. Klik "Tambah User"
+4. Isi username, display name, password
+5. Klik "Buat User"
+6. Bagikan kredensial ke pemilik undangan
+
+### 3. User Login & Setup
+1. User login dengan kredensial yang diberikan
+2. Isi data pernikahan, upload foto
+3. Pilih tema dan font
 4. Tambahkan daftar tamu
-5. Klik "Go Live!" untuk mempublikasikan
+5. Klik "Go Live!"
 
-### 3. Kirim Undangan
-- **Individual**: Klik ikon WhatsApp di samping nama tamu
-- **Massal**: Klik "Kirim Semua WA" untuk broadcast
-- **Generate Links**: Download file berisi semua link undangan
-- Setiap tamu mendapat link personal: `?to=NamaTamu`
+### 4. Akses Undangan
+- Undangan user: `yoursite.com/?user=username`
+- Link personal tamu: `yoursite.com/?user=username&to=NamaTamu`
 
-### 4. Format Import Tamu Massal
+## 📋 Format Import Tamu Massal
 ```
-Nama Tamu, Grup, No. WhatsApp, No. Meja
+Nama, Grup, No. WhatsApp, No. Meja
 Budi Santoso, Keluarga, 081234567890, 5
 Ani Wijaya, Teman SMA, 089876543210, 3
-Rekan Kerja, Kantor, 08111222333, 1
 ```
-Pemisah: koma (,), titik koma (;), atau tab
 
-## 🌐 Deployment ke Vercel via GitHub
+## 🌐 Deployment (GitHub + Vercel)
 
-### Step 1: Buat Repository GitHub
 ```bash
 git init
 git add .
-git commit -m "Initial commit - Wedding Invitation"
-git remote add origin https://github.com/USERNAME/REPO-NAME.git
+git commit -m "Wedding invitation platform"
+git remote add origin https://github.com/USERNAME/REPO.git
 git push -u origin main
 ```
 
-### Step 2: Deploy ke Vercel
-1. Buka [vercel.com](https://vercel.com)
-2. Login dengan akun GitHub
-3. Klik "New Project"
-4. Import repository dari GitHub
-5. Vercel akan otomatis detect Vite project
-6. Klik "Deploy"
-7. Website akan live di: `https://repo-name.vercel.app`
+Lalu import repository ke Vercel.
 
-### Step 3: Custom Domain (Opsional)
-1. Di Vercel dashboard → Settings → Domains
-2. Tambahkan domain custom
-3. Update DNS sesuai instruksi Vercel
-
-## 🔧 Konfigurasi
-
-### Mengubah Kredensial Admin
-1. Login ke admin panel
-2. Buka tab "Pengaturan"
-3. Ubah username, password, dan display name
-4. Perubahan otomatis tersimpan
-
-### Data Storage
-Semua data disimpan di **localStorage** browser. Data akan tetap ada selama browser tidak di-clear.
-
-## 📱 Struktur Halaman
-
-| URL | Halaman |
-|-----|---------|
-| `/` | Halaman Undangan (untuk tamu) |
-| `/?to=Nama` | Undangan dengan nama tamu |
-| `/#/admin` | Login Admin Panel |
+## 🔒 Keamanan
+- Super admin hanya 1 (tidak bisa dihapus)
+- User bisa diaktifkan/nonaktifkan
+- Password bisa di-reset oleh super admin
+- Data tersimpan di localStorage (per browser)
 
 ## 🛠️ Tech Stack
-
-- **React 18** - UI Framework
-- **Vite** - Build Tool
-- **Tailwind CSS** - Styling
-- **Zustand** - State Management
-- **Lucide React** - Icons
-- **Google Fonts** - Typography
-
-## 📝 Catatan Penting
-
-- Website menggunakan localStorage untuk menyimpan data
-- Untuk production, disarankan menggunakan backend database
-- Musik bisa ditambahkan via URL mp3 eksternal
-- Semua 24 tema bisa dikustomisasi lebih lanjut
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Zustand (state management)
+- Lucide React (icons)
+- browser-image-compression
+- Google Fonts
 
 ---
-
 Made with ❤️ for your special day
