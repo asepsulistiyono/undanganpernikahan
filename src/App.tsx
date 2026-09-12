@@ -24,25 +24,11 @@ function App() {
         return;
       }
 
-      // If ?user=username is in URL WITHOUT ?to and WITHOUT ?preview → go to dashboard edit
-      if (userParam && !toParam && !previewParam && !hash) {
-        const store = useStore.getState();
-        const user = store.users.find(u => u.username === userParam);
-        
-        if (user && user.isActive) {
-          // Auto-login this user and go to dashboard
-          store.login(user.username, user.password);
-          setCurrentPage('dashboard');
-          return;
-        } else if (user && !user.isActive) {
-          // User exists but inactive - show error page
-          setCurrentPage('invitation');
-          return;
-        } else {
-          // User not found - show error page
-          setCurrentPage('invitation');
-          return;
-        }
+      // If ?user=username is in URL → show invitation page with that user's data
+      if (userParam && !hash) {
+        // Just show the invitation page - it will handle the user parameter
+        setCurrentPage('invitation');
+        return;
       }
 
       // Admin routes
