@@ -51,13 +51,15 @@ export default function Dashboard({ onLogout }: Props) {
 
   const generateWALink = (guest: typeof guests[0]) => {
     const name = encodeURIComponent(guest.name);
-    const url = window.location.origin + window.location.pathname + '?to=' + name;
+    const username = store.currentUser?.username || '';
+    const url = window.location.origin + window.location.pathname + '?user=' + username + '&to=' + name;
     return `https://wa.me/${guest.phone}?text=${encodeURIComponent(`Assalamualaikum, kami ingin mengundang Anda ke pernikahan kami. Silakan buka link berikut:\n${url}`)}`;
   };
 
   const copyWALink = (guest: typeof guests[0]) => {
     const name = encodeURIComponent(guest.name);
-    const url = window.location.origin + window.location.pathname + '?to=' + name;
+    const username = store.currentUser?.username || '';
+    const url = window.location.origin + window.location.pathname + '?user=' + username + '&to=' + name;
     navigator.clipboard.writeText(url);
     setCopied(guest.id);
     setTimeout(() => setCopied(null), 2000);

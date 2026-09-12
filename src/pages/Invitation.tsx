@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
 import { availableFonts } from '../themes/fonts';
 import { WeddingData } from '../types';
-import { Heart, MapPin, Calendar, Clock, Gift, Music, ChevronDown, MessageCircle, Send, Sparkles, ArrowRight } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, Gift, Music, ChevronDown, MessageCircle, Send, Sparkles, ArrowRight, XCircle } from 'lucide-react';
 
 export default function Invitation() {
   const store = useStore();
@@ -21,6 +21,7 @@ export default function Invitation() {
   const [rsvpCount, setRsvpCount] = useState(1);
   const [showRSVP, setShowRSVP] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -30,7 +31,15 @@ export default function Invitation() {
 
     // Determine which user's invitation to show
     if (user) {
-      setOwnerUsername(user);
+      // Check if user exists and is active
+      const foundUser = store.users.find(u => u.username === user);
+      if (!foundUser) {
+        setErrorMessage(`User "${user}" tidak ditemukan`);
+      } else if (!foundUser.isActive) {
+        setErrorMessage(`User "${user}" tidak aktif`);
+      } else {
+        setOwnerUsername(user);
+      }
     } else {
       // Find first live user
       const liveUsers = store.users.filter(u => {
@@ -122,6 +131,24 @@ export default function Invitation() {
     return date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  // If error message exists
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+        <div className="text-center px-6">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+            <XCircle className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: bodyFont.family }}>Error</h1>
+          <p className="text-gray-400 mb-4" style={{ fontFamily: bodyFont.family }}>{errorMessage}</p>
+          <a href="#/admin" className="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition">
+            Login Admin
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   // If no owner found or not live
   if (!ownerUsername || (!isLive && !store.isAuthenticated)) {
     return (
@@ -131,7 +158,10 @@ export default function Invitation() {
             <Heart className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: bodyFont.family }}>Undangan Belum Aktif</h1>
-          <p className="text-gray-400" style={{ fontFamily: bodyFont.family }}>Undangan ini belum dipublikasikan oleh pemilik.</p>
+          <p className="text-gray-400 mb-4" style={{ fontFamily: bodyFont.family }}>Undangan ini belum dipublikasikan oleh pemilik.</p>
+          <a href="#/admin" className="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition">
+            Login Admin
+          </a>
         </div>
       </div>
     );

@@ -44,6 +44,15 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 
 ## 🚀 Cara Menggunakan
 
+### Alur Akses URL
+
+| URL | Fungsi |
+|-----|--------|
+| `yoursite.com/?user=username` | **Auto-login** → Langsung ke dashboard edit data pernikahan |
+| `yoursite.com/?user=username&to=NamaTamu` | Menampilkan undangan untuk tamu spesifik |
+| `yoursite.com/` | Menampilkan undangan default (user pertama yang live) |
+| `yoursite.com/#/admin` | Login manual admin panel |
+
 ### 1. Login sebagai Super Admin
 - URL: `yoursite.com/#/admin`
 - Default: **admin** / **admin123**
@@ -57,15 +66,27 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 6. Bagikan kredensial ke pemilik undangan
 
 ### 3. User Login & Setup
-1. User login dengan kredensial yang diberikan
-2. Isi data pernikahan, upload foto
-3. Pilih tema dan font
-4. Tambahkan daftar tamu
-5. Klik "Go Live!"
+
+**Cara 1: Akses langsung via URL (Recommended)**
+1. User buka: `yoursite.com/?user=username`
+2. Sistem auto-login → langsung ke dashboard edit
+3. Isi data pernikahan, upload foto
+4. Pilih tema dan font
+5. Tambahkan daftar tamu
+6. Klik "Go Live!"
+
+**Cara 2: Login manual**
+1. User buka: `yoursite.com/#/admin`
+2. Login dengan username & password
+3. Isi data pernikahan, upload foto
+4. Pilih tema dan font
+5. Tambahkan daftar tamu
+6. Klik "Go Live!"
 
 ### 4. Akses Undangan
-- Undangan user: `yoursite.com/?user=username`
-- Link personal tamu: `yoursite.com/?user=username&to=NamaTamu`
+- **Edit data pernikahan**: `yoursite.com/?user=username` (auto-login, langsung ke dashboard edit)
+- **Undangan untuk tamu**: `yoursite.com/?user=username&to=NamaTamu`
+- **Undangan default**: `yoursite.com/` (menampilkan undangan user pertama yang live)
 
 ## 📋 Format Import Tamu Massal
 ```

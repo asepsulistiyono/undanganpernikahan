@@ -13,6 +13,32 @@ function App() {
   useEffect(() => {
     const checkRoute = () => {
       const hash = window.location.hash;
+      const params = new URLSearchParams(window.location.search);
+      const userParam = params.get('user');
+      const toParam = params.get('to');
+
+      // If ?user=username is in URL WITHOUT ?to parameter → go to dashboard edit
+      if (userParam && !toParam && !hash) {
+        const store = useStore.getState();
+        const user = store.users.find(u => u.username === userParam);
+        
+        if (user && user.isActive) {
+          // Auto-login this user and go to dashboard
+          store.login(user.username, user.password);
+          setCurrentPage('dashboard');
+          return;
+        } else if (user && !user.isActive) {
+          // User exists but inactive - show error page
+          setCurrentPage('invitation');
+          return;
+        } else {
+          // User not found - show error page
+          setCurrentPage('invitation');
+          return;
+        }
+      }
+
+      // Admin routes
       if (hash === '#/admin') {
         if (isAuthenticated) {
           setCurrentPage('dashboard');
@@ -20,6 +46,7 @@ function App() {
           setCurrentPage('admin-login');
         }
       } else {
+        // Show invitation page (with or without ?user and ?to params)
         setCurrentPage('invitation');
       }
     };
@@ -36,6 +63,10 @@ function App() {
   const handleLogout = () => {
     useStore.getState().logout();
     window.location.hash = '';
+    // Remove user parameter from URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('user');
+    window.history.replaceState({}, '', url.toString());
     setCurrentPage('invitation');
   };
 
