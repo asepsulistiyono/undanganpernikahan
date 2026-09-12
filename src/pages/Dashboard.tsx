@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
 import { AdminUser } from '../types';
 import ImageUpload from '../components/ImageUpload';
 import FontSelector from '../components/FontSelector';
+import * as firebaseService from '../services/firebaseService';
 import {
   LogOut, Heart, Users, Palette, Settings, Globe, Upload,
   Plus, Trash2, Search, MessageCircle, FileText, Download, Edit3, X, Check, Copy,
@@ -20,12 +21,60 @@ export default function Dashboard({ onLogout }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('wedding');
   const store = useStore();
   const isSuperAdmin = store.currentUser?.role === 'super-admin';
+  const currentUser = store.currentUser;
 
   // Scoped data for current user
   const weddingData = store.getWeddingData();
   const selectedTheme = store.getSelectedTheme();
   const guests = store.getGuests();
   const isLive = store.isLive();
+
+  // Load data from Firebase when user logs in
+  useEffect(() => {
+    if (currentUser) {
+      const loadData = async () => {
+        try {
+          // Load wedding data
+          const weddingDataFromFirebase = await firebaseService.getWeddingData(currentUser.username);
+          if (weddingDataFromFirebase) {
+            store.updateWeddingData(weddingDataFromFirebase);
+          }
+          
+          // Load theme
+          const themeFromFirebase = await firebaseService.getTheme(currentUser.username);
+          if (themeFromFirebase) {
+            store.setSelectedTheme(themeFromFirebase);
+          }
+          
+          // Load guests
+          const guestsFromFirebase = await firebaseService.getGuests(currentUser.username);
+          if (guestsFromFirebase && guestsFromFirebase.length > 0) {
+            // Clear existing and add from Firebase
+            await store.clearAllGuests();
+            await store.addGuests(guestsFromFirebase.map(g => ({
+              name: g.name,
+              group: g.group,
+              phone: g.phone,
+              tableNumber: g.tableNumber,
+              status: g.status,
+              message: g.message
+            })));
+          }
+          
+          // Load live status
+          const liveStatusFromFirebase = await firebaseService.getLiveStatus(currentUser.username);
+          const { liveMap } = useStore.getState();
+          useStore.setState({
+            liveMap: { ...liveMap, [currentUser.username]: liveStatusFromFirebase }
+          });
+        } catch (error) {
+          console.error('Error loading data from Firebase:', error);
+        }
+      };
+      
+      loadData();
+    }
+  }, [currentUser]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddGuest, setShowAddGuest] = useState(false);

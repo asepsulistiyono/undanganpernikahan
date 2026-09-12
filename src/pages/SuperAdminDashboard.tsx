@@ -73,14 +73,14 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   }), [users]);
 
   // Handlers
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     try {
       if (!newUser.username || !newUser.password || !newUser.displayName) {
         alert('Username, password, dan display name harus diisi');
         return;
       }
       const { createUser } = useStore.getState();
-      const success = createUser({
+      const success = await createUser({
         username: newUser.username,
         password: newUser.password,
         displayName: newUser.displayName,
@@ -188,16 +188,16 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
     setSelectedUsers(new Set());
   };
 
-  const handleBulkImport = () => {
+  const handleBulkImport = async () => {
     const lines = bulkImportText.split('\n').filter(l => l.trim());
     let successCount = 0;
     let failCount = 0;
     const { createUser } = useStore.getState();
 
-    lines.forEach(line => {
+    for (const line of lines) {
       const parts = line.split(/[,;\t]/).map(p => p.trim());
       if (parts.length >= 3) {
-        const success = createUser({
+        const success = await createUser({
           username: parts[0],
           password: parts[1],
           displayName: parts[2],
@@ -206,7 +206,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
         if (success) successCount++;
         else failCount++;
       }
-    });
+    }
 
     alert(`Import selesai: ${successCount} berhasil, ${failCount} gagal`);
     setBulkImportText('');
