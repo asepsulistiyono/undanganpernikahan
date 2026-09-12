@@ -17,7 +17,10 @@ export interface WeddingData {
   receptionAddress: string;
   mapLink: string;
   coverImage: string;
+  groomPhoto: string;
+  bridePhoto: string;
   couplePhoto: string;
+  galleryImages: string[];
   story: string;
   quote: string;
   quoteSource: string;
@@ -29,6 +32,7 @@ export interface WeddingData {
   bankAccount2: string;
   bankHolder2: string;
   greeting: string;
+  customFont: string;
 }
 
 export interface Guest {

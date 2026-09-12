@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
+import ImageUpload from '../components/ImageUpload';
+import FontSelector from '../components/FontSelector';
 import {
   LogOut, Heart, Users, Palette, Settings, Globe, Upload,
-  Plus, Trash2, Search, MessageCircle, FileText, Download, Edit3, X, Check, Copy
+  Plus, Trash2, Search, MessageCircle, FileText, Download, Edit3, X, Check, Copy, Camera, Type
 } from 'lucide-react';
 
 interface Props {
@@ -208,6 +210,12 @@ export default function Dashboard({ onLogout }: Props) {
                 {/* Groom Section */}
                 <div className="space-y-4 p-4 bg-blue-50 rounded-xl">
                   <h3 className="font-semibold text-blue-800">🤵 Mempelai Pria</h3>
+                  <ImageUpload
+                    label="Foto Mempelai Pria"
+                    value={store.weddingData.groomPhoto}
+                    onChange={v => store.updateWeddingData({ groomPhoto: v })}
+                    aspectRatio="1/1"
+                  />
                   <InputField label="Nama" value={store.weddingData.groomName} onChange={v => store.updateWeddingData({ groomName: v })} />
                   <InputField label="Nama Ayah" value={store.weddingData.groomFather} onChange={v => store.updateWeddingData({ groomFather: v })} />
                   <InputField label="Nama Ibu" value={store.weddingData.groomMother} onChange={v => store.updateWeddingData({ groomMother: v })} />
@@ -217,10 +225,52 @@ export default function Dashboard({ onLogout }: Props) {
                 {/* Bride Section */}
                 <div className="space-y-4 p-4 bg-pink-50 rounded-xl">
                   <h3 className="font-semibold text-pink-800">👰 Mempelai Wanita</h3>
+                  <ImageUpload
+                    label="Foto Mempelai Wanita"
+                    value={store.weddingData.bridePhoto}
+                    onChange={v => store.updateWeddingData({ bridePhoto: v })}
+                    aspectRatio="1/1"
+                  />
                   <InputField label="Nama" value={store.weddingData.brideName} onChange={v => store.updateWeddingData({ brideName: v })} />
                   <InputField label="Nama Ayah" value={store.weddingData.brideFather} onChange={v => store.updateWeddingData({ brideFather: v })} />
                   <InputField label="Nama Ibu" value={store.weddingData.brideMother} onChange={v => store.updateWeddingData({ brideMother: v })} />
                   <InputField label="Alamat Orang Tua" value={store.weddingData.brideParentsAddress} onChange={v => store.updateWeddingData({ brideParentsAddress: v })} />
+                </div>
+
+                {/* Photo Gallery */}
+                <div className="space-y-4 p-4 bg-indigo-50 rounded-xl md:col-span-2">
+                  <h3 className="font-semibold text-indigo-800 flex items-center gap-2">
+                    <Camera className="w-5 h-5" />
+                    Foto Bersama & Gallery
+                  </h3>
+                  <ImageUpload
+                    label="Foto Cover / Hero"
+                    value={store.weddingData.coverImage}
+                    onChange={v => store.updateWeddingData({ coverImage: v })}
+                    aspectRatio="16/9"
+                    maxSizeMB={0.8}
+                  />
+                  <ImageUpload
+                    label="Foto Bersama Mempelai"
+                    value={store.weddingData.couplePhoto}
+                    onChange={v => store.updateWeddingData({ couplePhoto: v })}
+                    aspectRatio="4/3"
+                  />
+                </div>
+
+                {/* Font Settings */}
+                <div className="space-y-4 p-4 bg-violet-50 rounded-xl md:col-span-2">
+                  <h3 className="font-semibold text-violet-800 flex items-center gap-2">
+                    <Type className="w-5 h-5" />
+                    Pengaturan Font
+                  </h3>
+                  <FontSelector
+                    label="Font Utama (Body Text)"
+                    value={store.weddingData.customFont}
+                    onChange={v => store.updateWeddingData({ customFont: v })}
+                    type="body"
+                  />
+                  <p className="text-xs text-gray-500">Font ini akan digunakan untuk seluruh teks undangan. Pilih font yang sesuai dengan tema.</p>
                 </div>
 
                 {/* Wedding Event */}
