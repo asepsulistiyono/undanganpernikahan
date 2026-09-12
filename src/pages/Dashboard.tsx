@@ -52,17 +52,43 @@ export default function Dashboard({ onLogout }: Props) {
   const generateWALink = (guest: typeof guests[0]) => {
     const name = encodeURIComponent(guest.name);
     const username = store.currentUser?.username || '';
-    const url = window.location.origin + window.location.pathname + '?user=' + username + '&to=' + name;
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?user=${username}&to=${name}`;
     return `https://wa.me/${guest.phone}?text=${encodeURIComponent(`Assalamualaikum, kami ingin mengundang Anda ke pernikahan kami. Silakan buka link berikut:\n${url}`)}`;
   };
 
   const copyWALink = (guest: typeof guests[0]) => {
     const name = encodeURIComponent(guest.name);
     const username = store.currentUser?.username || '';
-    const url = window.location.origin + window.location.pathname + '?user=' + username + '&to=' + name;
-    navigator.clipboard.writeText(url);
-    setCopied(guest.id);
-    setTimeout(() => setCopied(null), 2000);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?user=${username}&to=${name}`;
+    
+    // Fallback untuk mobile yang tidak support clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(guest.id);
+        setTimeout(() => setCopied(null), 2000);
+      }).catch(() => {
+        // Fallback: buat textarea untuk copy manual
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopied(guest.id);
+          setTimeout(() => setCopied(null), 2000);
+        } catch (err) {
+          alert('Link: ' + url);
+        }
+        document.body.removeChild(textArea);
+      });
+    } else {
+      // Fallback untuk browser lama
+      alert('Link undangan: ' + url);
+    }
   };
 
   const handleBulkAdd = () => {
