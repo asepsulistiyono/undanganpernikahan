@@ -36,14 +36,14 @@ function App() {
         const user = store.users.find(u => u.username === userParam);
         
         if (user && user.isActive) {
-          // Auto-login this user and go to dashboard
+          // Set hash FIRST before login to avoid race condition
+          window.location.hash = '#/admin';
+          // Auto-login this user
           store.login(user.username, user.password);
           // Clean URL - remove ?user= param so refresh doesn't re-trigger
           const url = new URL(window.location.href);
           url.searchParams.delete('user');
           window.history.replaceState({}, '', url.toString());
-          // Navigate to admin hash
-          window.location.hash = '#/admin';
           setCurrentPage('dashboard');
           return;
         } else {
