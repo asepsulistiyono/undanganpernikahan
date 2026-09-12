@@ -39,6 +39,15 @@ const defaultWeddingData: WeddingData = {
   customFont: 'poppins'
 };
 
+// Debounce helper
+const debounceTimers: Record<string, NodeJS.Timeout> = {};
+const debounce = (key: string, fn: () => void, delay: number = 1000) => {
+  if (debounceTimers[key]) {
+    clearTimeout(debounceTimers[key]);
+  }
+  debounceTimers[key] = setTimeout(fn, delay);
+};
+
 interface StoreState {
   // Current logged in user
   currentUser: AdminUser | null;
@@ -69,23 +78,23 @@ interface StoreState {
 
   // Wedding data methods (scoped to current user)
   getWeddingData: () => WeddingData;
-  updateWeddingData: (data: Partial<WeddingData>) => Promise<void>;
+  updateWeddingData: (data: Partial<WeddingData>) => void;
 
   // Theme
   getSelectedTheme: () => string;
-  setSelectedTheme: (themeId: string) => Promise<void>;
+  setSelectedTheme: (themeId: string) => void;
 
   // Guests (scoped to current user)
   getGuests: () => Guest[];
-  addGuest: (guest: Omit<Guest, 'id' | 'createdAt'>) => Promise<void>;
-  addGuests: (guests: Omit<Guest, 'id' | 'createdAt'>[]) => Promise<void>;
-  updateGuest: (id: string, data: Partial<Guest>) => Promise<void>;
-  deleteGuest: (id: string) => Promise<void>;
-  clearAllGuests: () => Promise<void>;
+  addGuest: (guest: Omit<Guest, 'id' | 'createdAt'>) => void;
+  addGuests: (guests: Omit<Guest, 'id' | 'createdAt'>[]) => void;
+  updateGuest: (id: string, data: Partial<Guest>) => void;
+  deleteGuest: (id: string) => void;
+  clearAllGuests: () => void;
 
   // Live status
   isLive: () => boolean;
-  toggleLive: () => Promise<void>;
+  toggleLive: () => void;
 
   // Get user's display name (for invitation footer)
   getUserDisplayName: (username: string) => string;
@@ -121,7 +130,6 @@ export const useStore = create<StoreState>()((set, get) => ({
   // User management
   createUser: async (userData) => {
     const { users } = get();
-    // Check if username already exists
     if (users.find(u => u.username === userData.username)) {
       return false;
     }
@@ -152,7 +160,6 @@ export const useStore = create<StoreState>()((set, get) => ({
   deleteUser: async (username) => {
     try {
       await firebaseService.deleteUser(username);
-      // Also delete related data
       const { weddingDataMap, themeMap, guestsMap, liveMap } = get();
       const newWeddingData = { ...weddingDataMap };
       const newTheme = { ...themeMap };
@@ -193,19 +200,20 @@ export const useStore = create<StoreState>()((set, get) => ({
     }
   },
 
-  // Wedding data (scoped)
+  // Wedding data (scoped) - OPTIMIZED WITH DEBOUNCE
   getWeddingData: () => {
     const { currentUser, weddingDataMap } = get();
     if (!currentUser) return defaultWeddingData;
     return weddingDataMap[currentUser.username] || defaultWeddingData;
   },
 
-  updateWeddingData: async (data) => {
+  updateWeddingData: (data) => {
     const { currentUser, weddingDataMap } = get();
     if (!currentUser) return;
     const currentData = weddingDataMap[currentUser.username] || defaultWeddingData;
     const newData = { ...currentData, ...data };
     
+    // Optimistic update - update UI immediately
     set({
       weddingDataMap: {
         ...weddingDataMap,
@@ -213,43 +221,42 @@ export const useStore = create<StoreState>()((set, get) => ({
       }
     });
 
-    try {
-      await firebaseService.saveWeddingData(currentUser.username, newData);
-    } catch (error) {
-      console.error('Error saving wedding data:', error);
-    }
+    // Debounced save to Firebase (1 second delay)
+    debounce(`wedding-${currentUser.username}`, () => {
+      firebaseService.saveWeddingData(currentUser.username, newData)
+        .catch(error => console.error('Error saving wedding data:', error));
+    }, 1000);
   },
 
-  // Theme (scoped)
+  // Theme (scoped) - OPTIMIZED
   getSelectedTheme: () => {
     const { currentUser, themeMap } = get();
     if (!currentUser) return 'elegant-gold';
     return themeMap[currentUser.username] || 'elegant-gold';
   },
 
-  setSelectedTheme: async (themeId) => {
+  setSelectedTheme: (themeId) => {
     const { currentUser, themeMap } = get();
     if (!currentUser) return;
     
+    // Optimistic update
     set({
       themeMap: { ...themeMap, [currentUser.username]: themeId }
     });
 
-    try {
-      await firebaseService.saveTheme(currentUser.username, themeId);
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
+    // Fire and forget
+    firebaseService.saveTheme(currentUser.username, themeId)
+      .catch(error => console.error('Error saving theme:', error));
   },
 
-  // Guests (scoped)
+  // Guests (scoped) - OPTIMIZED
   getGuests: () => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return [];
     return guestsMap[currentUser.username] || [];
   },
 
-  addGuest: async (guest) => {
+  addGuest: (guest) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
     const currentGuests = guestsMap[currentUser.username] || [];
@@ -259,6 +266,7 @@ export const useStore = create<StoreState>()((set, get) => ({
       createdAt: new Date().toISOString()
     };
     
+    // Optimistic update
     set({
       guestsMap: {
         ...guestsMap,
@@ -266,14 +274,12 @@ export const useStore = create<StoreState>()((set, get) => ({
       }
     });
 
-    try {
-      await firebaseService.addGuest(currentUser.username, newGuest);
-    } catch (error) {
-      console.error('Error adding guest:', error);
-    }
+    // Fire and forget
+    firebaseService.addGuest(currentUser.username, newGuest)
+      .catch(error => console.error('Error adding guest:', error));
   },
 
-  addGuests: async (newGuests) => {
+  addGuests: (newGuests) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
     const currentGuests = guestsMap[currentUser.username] || [];
@@ -283,6 +289,7 @@ export const useStore = create<StoreState>()((set, get) => ({
       createdAt: new Date().toISOString()
     }));
     
+    // Optimistic update
     set({
       guestsMap: {
         ...guestsMap,
@@ -290,20 +297,18 @@ export const useStore = create<StoreState>()((set, get) => ({
       }
     });
 
-    try {
-      for (const guest of guestsWithIds) {
-        await firebaseService.addGuest(currentUser.username, guest);
-      }
-    } catch (error) {
-      console.error('Error adding guests:', error);
-    }
+    // Batch save to Firebase
+    Promise.all(guestsWithIds.map(guest => 
+      firebaseService.addGuest(currentUser.username, guest)
+    )).catch(error => console.error('Error adding guests:', error));
   },
 
-  updateGuest: async (id, data) => {
+  updateGuest: (id, data) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
     const currentGuests = guestsMap[currentUser.username] || [];
     
+    // Optimistic update
     set({
       guestsMap: {
         ...guestsMap,
@@ -311,18 +316,17 @@ export const useStore = create<StoreState>()((set, get) => ({
       }
     });
 
-    try {
-      await firebaseService.updateGuest(id, data);
-    } catch (error) {
-      console.error('Error updating guest:', error);
-    }
+    // Fire and forget
+    firebaseService.updateGuest(id, data)
+      .catch(error => console.error('Error updating guest:', error));
   },
 
-  deleteGuest: async (id) => {
+  deleteGuest: (id) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
     const currentGuests = guestsMap[currentUser.username] || [];
     
+    // Optimistic update
     set({
       guestsMap: {
         ...guestsMap,
@@ -330,40 +334,38 @@ export const useStore = create<StoreState>()((set, get) => ({
       }
     });
 
-    try {
-      await firebaseService.deleteGuest(id);
-    } catch (error) {
-      console.error('Error deleting guest:', error);
-    }
+    // Fire and forget
+    firebaseService.deleteGuest(id)
+      .catch(error => console.error('Error deleting guest:', error));
   },
 
-  clearAllGuests: async () => {
+  clearAllGuests: () => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
     
+    // Optimistic update
     set({
       guestsMap: { ...guestsMap, [currentUser.username]: [] }
     });
 
-    try {
-      await firebaseService.deleteAllGuests(currentUser.username);
-    } catch (error) {
-      console.error('Error clearing guests:', error);
-    }
+    // Fire and forget
+    firebaseService.deleteAllGuests(currentUser.username)
+      .catch(error => console.error('Error clearing guests:', error));
   },
 
-  // Live status (scoped)
+  // Live status (scoped) - OPTIMIZED
   isLive: () => {
     const { currentUser, liveMap } = get();
     if (!currentUser) return false;
     return liveMap[currentUser.username] || false;
   },
 
-  toggleLive: async () => {
+  toggleLive: () => {
     const { currentUser, liveMap } = get();
     if (!currentUser) return;
     const newStatus = !(liveMap[currentUser.username] || false);
     
+    // Optimistic update
     set({
       liveMap: {
         ...liveMap,
@@ -371,11 +373,9 @@ export const useStore = create<StoreState>()((set, get) => ({
       }
     });
 
-    try {
-      await firebaseService.saveLiveStatus(currentUser.username, newStatus);
-    } catch (error) {
-      console.error('Error toggling live status:', error);
-    }
+    // Fire and forget
+    firebaseService.saveLiveStatus(currentUser.username, newStatus)
+      .catch(error => console.error('Error toggling live status:', error));
   },
 
   getUserDisplayName: (username: string) => {

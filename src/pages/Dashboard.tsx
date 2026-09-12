@@ -32,37 +32,39 @@ export default function Dashboard({ onLogout }: Props) {
   // Load data from Firebase when user logs in
   useEffect(() => {
     if (currentUser) {
+      // Load data in parallel without blocking UI
       const loadData = async () => {
         try {
-          // Load wedding data
-          const weddingDataFromFirebase = await firebaseService.getWeddingData(currentUser.username);
+          // Load all data in parallel
+          const [weddingDataFromFirebase, themeFromFirebase, guestsFromFirebase, liveStatusFromFirebase] = await Promise.all([
+            firebaseService.getWeddingData(currentUser.username),
+            firebaseService.getTheme(currentUser.username),
+            firebaseService.getGuests(currentUser.username),
+            firebaseService.getLiveStatus(currentUser.username)
+          ]);
+          
+          // Update store with loaded data
           if (weddingDataFromFirebase) {
-            store.updateWeddingData(weddingDataFromFirebase);
+            const { weddingDataMap } = useStore.getState();
+            useStore.setState({
+              weddingDataMap: { ...weddingDataMap, [currentUser.username]: weddingDataFromFirebase }
+            });
           }
           
-          // Load theme
-          const themeFromFirebase = await firebaseService.getTheme(currentUser.username);
           if (themeFromFirebase) {
-            store.setSelectedTheme(themeFromFirebase);
+            const { themeMap } = useStore.getState();
+            useStore.setState({
+              themeMap: { ...themeMap, [currentUser.username]: themeFromFirebase }
+            });
           }
           
-          // Load guests
-          const guestsFromFirebase = await firebaseService.getGuests(currentUser.username);
           if (guestsFromFirebase && guestsFromFirebase.length > 0) {
-            // Clear existing and add from Firebase
-            await store.clearAllGuests();
-            await store.addGuests(guestsFromFirebase.map(g => ({
-              name: g.name,
-              group: g.group,
-              phone: g.phone,
-              tableNumber: g.tableNumber,
-              status: g.status,
-              message: g.message
-            })));
+            const { guestsMap } = useStore.getState();
+            useStore.setState({
+              guestsMap: { ...guestsMap, [currentUser.username]: guestsFromFirebase }
+            });
           }
           
-          // Load live status
-          const liveStatusFromFirebase = await firebaseService.getLiveStatus(currentUser.username);
           const { liveMap } = useStore.getState();
           useStore.setState({
             liveMap: { ...liveMap, [currentUser.username]: liveStatusFromFirebase }
@@ -92,10 +94,10 @@ export default function Dashboard({ onLogout }: Props) {
   );
 
   const updateWeddingDataWithSave = (data: Partial<any>) => {
-    setSaveStatus('saving');
+    // No need for loading state - optimistic update is instant
     store.updateWeddingData(data);
-    setTimeout(() => setSaveStatus('saved'), 300);
-    setTimeout(() => setSaveStatus('idle'), 2000);
+    setSaveStatus('saved');
+    setTimeout(() => setSaveStatus('idle'), 1500);
   };
 
   const generateWALink = (guest: typeof guests[0]) => {
