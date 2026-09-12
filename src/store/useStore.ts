@@ -21,7 +21,10 @@ const defaultWeddingData: WeddingData = {
   receptionAddress: 'Jl. Asia Afrika, Senayan, Jakarta Selatan',
   mapLink: 'https://maps.google.com',
   coverImage: '',
+  groomPhoto: '',
+  bridePhoto: '',
   couplePhoto: '',
+  galleryImages: [],
   story: 'Pertemuan kami dimulai dari sebuah kebetulan yang indah. Dari saling mengenal, kami menemukan bahwa kami saling melengkapi dalam setiap aspek kehidupan.',
   quote: '"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu istri-istri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya."',
   quoteSource: 'QS. Ar-Rum: 21',
@@ -32,7 +35,8 @@ const defaultWeddingData: WeddingData = {
   bankName2: 'Bank Mandiri',
   bankAccount2: '0987654321',
   bankHolder2: 'Siti Nurhaliza',
-  greeting: 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami.'
+  greeting: 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami.',
+  customFont: 'poppins'
 };
 
 interface StoreState {
