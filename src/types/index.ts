@@ -66,4 +66,15 @@ export interface AdminUser {
   username: string;
   password: string;
   displayName: string;
+  role: 'super-admin' | 'user';
+  createdAt: string;
+  isActive: boolean;
+}
+
+export interface UserWeddingData {
+  [userId: string]: WeddingData;
+}
+
+export interface UserThemeSelection {
+  [userId: string]: string;
 }

@@ -11,22 +11,7 @@ function App() {
   const isAuthenticated = useStore(s => s.isAuthenticated);
 
   useEffect(() => {
-    // Check URL for admin route
-    const hash = window.location.hash;
-    if (hash === '#/admin') {
-      if (isAuthenticated) {
-        setCurrentPage('dashboard');
-      } else {
-        setCurrentPage('admin-login');
-      }
-    } else {
-      setCurrentPage('invitation');
-    }
-  }, [isAuthenticated]);
-
-  // Listen for hash changes
-  useEffect(() => {
-    const handleHashChange = () => {
+    const checkRoute = () => {
       const hash = window.location.hash;
       if (hash === '#/admin') {
         if (isAuthenticated) {
@@ -39,8 +24,9 @@ function App() {
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    checkRoute();
+    window.addEventListener('hashchange', checkRoute);
+    return () => window.removeEventListener('hashchange', checkRoute);
   }, [isAuthenticated]);
 
   const handleLogin = () => {
