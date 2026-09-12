@@ -34,11 +34,14 @@ function App() {
       // If ?user=username (without &to and without &preview) → auto-login & go to dashboard
       if (userParam && !previewParam && !toParam) {
         const store = useStore.getState();
+        console.log('All users in store:', store.users);
         const user = store.users.find(u => u.username === userParam);
+        console.log('Found user:', user);
         
         if (user && user.isActive) {
           // Auto-login this user
-          store.login(user.username, user.password);
+          const loginSuccess = store.login(user.username, user.password);
+          console.log('Login success:', loginSuccess);
           // Clean URL completely
           const cleanUrl = window.location.origin + window.location.pathname;
           window.history.replaceState({}, '', cleanUrl);
