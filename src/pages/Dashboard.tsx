@@ -183,55 +183,55 @@ export default function Dashboard({ onLogout }: Props) {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center">
-              {isSuperAdmin ? <Shield className="w-5 h-5 text-white" /> : <Heart className="w-5 h-5 text-white" />}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              {isSuperAdmin ? <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" /> : <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
             </div>
-            <div>
-              <h1 className="font-bold text-gray-800">
-                {isSuperAdmin ? 'Super Admin Panel' : 'Wedding Dashboard'}
+            <div className="min-w-0">
+              <h1 className="font-bold text-gray-800 text-sm sm:text-base truncate">
+                {isSuperAdmin ? 'Super Admin' : 'Dashboard'}
               </h1>
-              <p className="text-xs text-gray-500">
-                {store.currentUser?.displayName} • {isSuperAdmin ? 'Super Admin' : 'User'}
+              <p className="text-xs text-gray-500 truncate">
+                {store.currentUser?.displayName}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {isSuperAdmin && (
               <a 
                 href="#/super-admin" 
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition"
+                className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition text-xs sm:text-sm min-h-[36px]"
               >
-                <Shield className="w-4 h-4" />
+                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Super Admin</span>
               </a>
             )}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isLive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-              <Globe className="w-4 h-4" />
-              {isLive ? 'Live' : 'Offline'}
+            <div className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${isLive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{isLive ? 'Live' : 'Offline'}</span>
             </div>
-            <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition">
-              <LogOut className="w-4 h-4" />
+            <button onClick={onLogout} className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-xs sm:text-sm min-h-[36px]">
+              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Keluar</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 border shadow-sm">
-            <p className="text-2xl font-bold text-amber-600">{guests.length}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+            <p className="text-xl sm:text-2xl font-bold text-amber-600">{guests.length}</p>
             <p className="text-xs text-gray-500">Total Tamu</p>
           </div>
-          <div className="bg-white rounded-xl p-4 border shadow-sm">
-            <p className="text-2xl font-bold text-green-600">{guests.filter(g => g.status === 'accepted').length}</p>
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+            <p className="text-xl sm:text-2xl font-bold text-green-600">{guests.filter(g => g.status === 'accepted').length}</p>
             <p className="text-xs text-gray-500">Konfirmasi Hadir</p>
           </div>
-          <div className="bg-white rounded-xl p-4 border shadow-sm">
-            <p className="text-2xl font-bold text-blue-600">{guests.filter(g => g.phone).length}</p>
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+            <p className="text-xl sm:text-2xl font-bold text-blue-600">{guests.filter(g => g.phone).length}</p>
             <p className="text-xs text-gray-500">Ada No. WA</p>
           </div>
           {isSuperAdmin ? (
@@ -250,33 +250,33 @@ export default function Dashboard({ onLogout }: Props) {
         {/* Preview Button */}
         <div className="mb-6">
           <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-amber-700 transition shadow-lg shadow-amber-500/25">
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-amber-700 transition shadow-lg shadow-amber-500/25 min-h-[48px] text-base">
             <Globe className="w-5 h-5" /> Preview Undangan
           </a>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition min-h-[44px] ${
                 activeTab === tab.id ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25' : 'bg-white text-gray-600 hover:bg-gray-100 border'
               }`}>
-              <tab.icon className="w-4 h-4" /> {tab.label}
+              <tab.icon className="w-4 h-4" /> <span className="hidden sm:inline">{tab.label}</span><span className="sm:hidden">{tab.label.split(' ')[0]}</span>
             </button>
           ))}
         </div>
 
         {/* Wedding Data Tab */}
         {activeTab === 'wedding' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
                 <Heart className="w-5 h-5 text-amber-500" /> Data Mempelai & Acara
               </h2>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 {/* Save Status Indicator */}
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                <div className={`flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all ${
                   saveStatus === 'saving' ? 'bg-blue-100 text-blue-700' :
                   saveStatus === 'saved' ? 'bg-green-100 text-green-700' :
                   'bg-gray-100 text-gray-500'
@@ -286,7 +286,7 @@ export default function Dashboard({ onLogout }: Props) {
                   {saveStatus === 'idle' && <><div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif</>}
                 </div>
                 <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition text-sm font-medium shadow-md">
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition text-sm font-medium shadow-md min-h-[44px]">
                   <Globe className="w-4 h-4" /> Preview
                 </a>
               </div>

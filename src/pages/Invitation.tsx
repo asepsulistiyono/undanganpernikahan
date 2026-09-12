@@ -232,8 +232,8 @@ export default function Invitation() {
     return (
       <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: theme.bgGradient, fontFamily: bodyFont.family }}>
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${theme.primaryColor}30, transparent)`, filter: 'blur(60px)', animationDuration: '4s' }} />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${theme.accentColor}25, transparent)`, filter: 'blur(80px)', animationDuration: '6s' }} />
+          <div className="absolute top-1/4 left-1/4 w-64 sm:w-96 h-64 sm:h-96 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${theme.primaryColor}30, transparent)`, filter: 'blur(60px)', animationDuration: '4s' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-56 sm:w-80 h-56 sm:h-80 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${theme.accentColor}25, transparent)`, filter: 'blur(80px)', animationDuration: '6s' }} />
         </div>
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `linear-gradient(${theme.primaryColor} 1px, transparent 1px), linear-gradient(90deg, ${theme.primaryColor} 1px, transparent 1px)`,
@@ -253,49 +253,49 @@ export default function Invitation() {
           left: mousePos.x - 128, top: mousePos.y - 128, filter: 'blur(20px)'
         }} />
 
-        <div className="text-center px-6 relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-20 h-px" style={{ background: `linear-gradient(to right, transparent, ${theme.primaryColor})` }} />
-            <Sparkles className="w-4 h-4" style={{ color: theme.primaryColor }} />
-            <div className="w-20 h-px" style={{ background: `linear-gradient(to left, transparent, ${theme.primaryColor})` }} />
+        <div className="text-center px-4 sm:px-6 relative z-10 w-full max-w-md">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+            <div className="w-12 sm:w-20 h-px" style={{ background: `linear-gradient(to right, transparent, ${theme.primaryColor})` }} />
+            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: theme.primaryColor }} />
+            <div className="w-12 sm:w-20 h-px" style={{ background: `linear-gradient(to left, transparent, ${theme.primaryColor})` }} />
           </div>
-          <p className="text-xs uppercase tracking-[0.4em] mb-6 opacity-60" style={{ color: theme.textColor }}>✦ The Wedding Of ✦</p>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold animate-fade-in-up" style={{
+          <p className="text-xs uppercase tracking-[0.3em] sm:tracking-[0.4em] mb-4 sm:mb-6 opacity-60" style={{ color: theme.textColor }}>✦ The Wedding Of ✦</p>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold animate-fade-in-up break-words" style={{
             fontFamily: theme.scriptFont, color: theme.primaryColor,
             textShadow: `0 0 40px ${theme.primaryColor}40, 0 0 80px ${theme.primaryColor}20`
           }}>{weddingData.groomName || 'Mempelai Pria'}</h1>
-          <div className="flex items-center justify-center gap-4 my-4">
-            <div className="w-16 h-px" style={{ background: `linear-gradient(to right, transparent, ${theme.accentColor})` }} />
-            <span className="text-3xl md:text-4xl" style={{ fontFamily: theme.scriptFont, color: theme.accentColor }}>&</span>
-            <div className="w-16 h-px" style={{ background: `linear-gradient(to left, transparent, ${theme.accentColor})` }} />
+          <div className="flex items-center justify-center gap-3 sm:gap-4 my-3 sm:my-4">
+            <div className="w-10 sm:w-16 h-px" style={{ background: `linear-gradient(to right, transparent, ${theme.accentColor})` }} />
+            <span className="text-2xl sm:text-3xl md:text-4xl" style={{ fontFamily: theme.scriptFont, color: theme.accentColor }}>&</span>
+            <div className="w-10 sm:w-16 h-px" style={{ background: `linear-gradient(to left, transparent, ${theme.accentColor})` }} />
           </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold animate-fade-in-up" style={{
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold animate-fade-in-up break-words" style={{
             fontFamily: theme.scriptFont, color: theme.primaryColor,
             textShadow: `0 0 40px ${theme.primaryColor}40, 0 0 80px ${theme.primaryColor}20`, animationDelay: '0.2s'
           }}>{weddingData.brideName || 'Mempelai Wanita'}</h1>
 
           {guestName && (
-            <div className="mb-8 inline-block">
-              <div className="px-6 py-4 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}30` }}>
+            <div className="mb-6 sm:mb-8 inline-block w-full">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}30` }}>
                 <p className="text-xs uppercase tracking-wider opacity-50 mb-1" style={{ color: theme.textColor }}>Kepada Yth.</p>
-                <p className="text-xl font-bold" style={{ color: theme.primaryColor }}>{guestName}</p>
+                <p className="text-lg sm:text-xl font-bold break-words" style={{ color: theme.primaryColor }}>{guestName}</p>
               </div>
             </div>
           )}
 
-          <div className="relative inline-block">
-            <button onClick={handleOpen} className="relative px-10 py-4 rounded-full font-medium text-sm transition-all hover:scale-105 group overflow-hidden" style={{
+          <div className="relative inline-block mt-4 sm:mt-0">
+            <button onClick={handleOpen} className="relative px-8 sm:px-10 py-3.5 sm:py-4 rounded-full font-medium text-sm transition-all hover:scale-105 group overflow-hidden min-w-[200px]" style={{
               background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`, color: '#ffffff',
               boxShadow: `0 0 30px ${theme.primaryColor}40, 0 10px 40px ${theme.primaryColor}30`
             }}>
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2">
                 Buka Undangan <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </span>
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             </button>
             <div className="absolute -inset-1 rounded-full animate-pulse opacity-50" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}40, ${theme.accentColor}40)`, filter: 'blur(8px)' }} />
           </div>
-          <ChevronDown className="w-5 h-5 mx-auto mt-10 animate-bounce opacity-40" style={{ color: theme.textColor }} />
+          <ChevronDown className="w-5 h-5 mx-auto mt-8 sm:mt-10 animate-bounce opacity-40" style={{ color: theme.textColor }} />
         </div>
       </div>
     );
@@ -303,12 +303,12 @@ export default function Invitation() {
 
   return (
     <div style={{ background: theme.bgGradient, minHeight: '100vh', fontFamily: bodyFont.family }} className="relative">
-      <button onClick={() => setIsPlaying(!isPlaying)} className="fixed top-4 right-4 z-50 w-11 h-11 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md border transition-all hover:scale-110" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}30`, color: theme.primaryColor }}>
-        <Music className={`w-5 h-5 ${isPlaying ? 'animate-spin' : ''}`} />
+      <button onClick={() => setIsPlaying(!isPlaying)} className="fixed top-4 right-4 z-50 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md border transition-all hover:scale-110" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}30`, color: theme.primaryColor }}>
+        <Music className={`w-4 h-4 sm:w-5 sm:h-5 ${isPlaying ? 'animate-spin' : ''}`} />
       </button>
 
       {/* Hero */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden px-6">
+      <section className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 sm:px-6">
         <div className="absolute inset-0">
           <div className="absolute top-1/3 left-1/4 w-96 h-96 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${theme.primaryColor}15, transparent)`, filter: 'blur(80px)', animationDuration: '5s' }} />
           <div className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${theme.accentColor}10, transparent)`, filter: 'blur(60px)', animationDuration: '7s' }} />
@@ -333,37 +333,37 @@ export default function Invitation() {
           <p className="text-xs uppercase tracking-[0.4em] mb-8 opacity-60" style={{ color: theme.textColor }}>✦ The Wedding Of ✦</p>
 
           {/* Photos */}
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-6 mb-6 sm:mb-8">
             {weddingData.groomPhoto ? (
               <div className="relative">
-                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 shadow-xl" style={{ borderColor: `${theme.primaryColor}60`, boxShadow: `0 0 30px ${theme.primaryColor}30` }}>
+                <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 shadow-xl" style={{ borderColor: `${theme.primaryColor}60`, boxShadow: `0 0 30px ${theme.primaryColor}30` }}>
                   <img src={weddingData.groomPhoto} alt="Groom" className="w-full h-full object-cover" />
                 </div>
               </div>
             ) : (
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center text-5xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>🤵</div>
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center text-4xl sm:text-5xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>🤵</div>
             )}
-            <div className="text-3xl md:text-4xl" style={{ fontFamily: theme.scriptFont, color: theme.accentColor }}>&</div>
+            <div className="text-2xl sm:text-3xl md:text-4xl" style={{ fontFamily: theme.scriptFont, color: theme.accentColor }}>&</div>
             {weddingData.bridePhoto ? (
               <div className="relative">
-                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 shadow-xl" style={{ borderColor: `${theme.primaryColor}60`, boxShadow: `0 0 30px ${theme.primaryColor}30` }}>
+                <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 shadow-xl" style={{ borderColor: `${theme.primaryColor}60`, boxShadow: `0 0 30px ${theme.primaryColor}30` }}>
                   <img src={weddingData.bridePhoto} alt="Bride" className="w-full h-full object-cover" />
                 </div>
               </div>
             ) : (
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center text-5xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>👰</div>
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center text-4xl sm:text-5xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>👰</div>
             )}
           </div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-2" style={{ fontFamily: theme.scriptFont, color: theme.primaryColor, textShadow: `0 0 40px ${theme.primaryColor}30` }}>
+          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-2 break-words" style={{ fontFamily: theme.scriptFont, color: theme.primaryColor, textShadow: `0 0 40px ${theme.primaryColor}30` }}>
             {weddingData.groomName}
           </h1>
-          <div className="flex items-center justify-center gap-3 my-2">
-            <div className="w-12 h-px" style={{ background: `${theme.primaryColor}60` }} />
-            <span className="text-2xl" style={{ fontFamily: theme.scriptFont, color: theme.accentColor }}>&</span>
-            <div className="w-12 h-px" style={{ background: `${theme.primaryColor}60` }} />
+          <div className="flex items-center justify-center gap-2 sm:gap-3 my-2">
+            <div className="w-8 sm:w-12 h-px" style={{ background: `${theme.primaryColor}60` }} />
+            <span className="text-xl sm:text-2xl" style={{ fontFamily: theme.scriptFont, color: theme.accentColor }}>&</span>
+            <div className="w-8 sm:w-12 h-px" style={{ background: `${theme.primaryColor}60` }} />
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8" style={{ fontFamily: theme.scriptFont, color: theme.primaryColor, textShadow: `0 0 40px ${theme.primaryColor}30` }}>
+          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 break-words" style={{ fontFamily: theme.scriptFont, color: theme.primaryColor, textShadow: `0 0 40px ${theme.primaryColor}30` }}>
             {weddingData.brideName}
           </h1>
           {weddingData.weddingDate && <p className="text-sm opacity-50" style={{ color: theme.textColor }}>{formatDate(weddingData.weddingDate)}</p>}
@@ -372,10 +372,10 @@ export default function Invitation() {
 
       {/* Quote */}
       {weddingData.quote && (
-        <section className="py-20 px-6 relative">
+        <section className="py-16 sm:py-20 px-4 sm:px-6 relative">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="p-8 md:p-12 rounded-3xl backdrop-blur-md border relative overflow-hidden" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-              <p className="text-lg md:text-xl italic leading-relaxed mb-4" style={{ color: theme.textColor }}>"{weddingData.quote}"</p>
+            <div className="p-6 sm:p-8 md:p-12 rounded-3xl backdrop-blur-md border relative overflow-hidden" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+              <p className="text-base sm:text-lg md:text-xl italic leading-relaxed mb-4" style={{ color: theme.textColor }}>"{weddingData.quote}"</p>
               <p className="text-sm font-semibold" style={{ color: theme.primaryColor }}>— {weddingData.quoteSource}</p>
             </div>
           </div>
@@ -383,40 +383,40 @@ export default function Invitation() {
       )}
 
       {/* Couple */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-center text-3xl md:text-5xl font-bold mb-4" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Mempelai</h2>
-          {weddingData.greeting && <p className="text-center text-sm mb-12 opacity-60" style={{ color: theme.textColor }}>{weddingData.greeting}</p>}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-3xl backdrop-blur-md border text-center relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+          <h2 className="text-center text-2xl sm:text-3xl md:text-5xl font-bold mb-4" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Mempelai</h2>
+          {weddingData.greeting && <p className="text-center text-sm mb-8 sm:mb-12 opacity-60 px-4" style={{ color: theme.textColor }}>{weddingData.greeting}</p>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            <div className="p-6 sm:p-8 rounded-3xl backdrop-blur-md border text-center relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
               {weddingData.groomPhoto ? (
-                <div className="w-36 h-36 mx-auto mb-6 rounded-full overflow-hidden border-2 shadow-lg" style={{ borderColor: `${theme.primaryColor}50` }}>
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-4 sm:mb-6 rounded-full overflow-hidden border-2 shadow-lg" style={{ borderColor: `${theme.primaryColor}50` }}>
                   <img src={weddingData.groomPhoto} alt="Groom" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="w-36 h-36 mx-auto mb-6 rounded-full flex items-center justify-center text-6xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>🤵</div>
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center text-5xl sm:text-6xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>🤵</div>
               )}
-              <h3 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>{weddingData.groomName}</h3>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 break-words" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>{weddingData.groomName}</h3>
               <p className="text-sm mb-1" style={{ color: theme.textColor, opacity: 0.7 }}>Putra dari</p>
-              <p className="font-medium" style={{ color: theme.textColor }}>{weddingData.groomFather} & {weddingData.groomMother}</p>
-              {weddingData.groomParentsAddress && <p className="text-xs opacity-40 mt-2" style={{ color: theme.textColor }}>{weddingData.groomParentsAddress}</p>}
+              <p className="font-medium text-sm sm:text-base break-words" style={{ color: theme.textColor }}>{weddingData.groomFather} & {weddingData.groomMother}</p>
+              {weddingData.groomParentsAddress && <p className="text-xs opacity-40 mt-2 break-words" style={{ color: theme.textColor }}>{weddingData.groomParentsAddress}</p>}
             </div>
-            <div className="p-8 rounded-3xl backdrop-blur-md border text-center relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+            <div className="p-6 sm:p-8 rounded-3xl backdrop-blur-md border text-center relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
               {weddingData.bridePhoto ? (
-                <div className="w-36 h-36 mx-auto mb-6 rounded-full overflow-hidden border-2 shadow-lg" style={{ borderColor: `${theme.primaryColor}50` }}>
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-4 sm:mb-6 rounded-full overflow-hidden border-2 shadow-lg" style={{ borderColor: `${theme.primaryColor}50` }}>
                   <img src={weddingData.bridePhoto} alt="Bride" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="w-36 h-36 mx-auto mb-6 rounded-full flex items-center justify-center text-6xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>👰</div>
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center text-5xl sm:text-6xl border-2" style={{ background: `${theme.primaryColor}10`, borderColor: `${theme.primaryColor}30` }}>👰</div>
               )}
-              <h3 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>{weddingData.brideName}</h3>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 break-words" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>{weddingData.brideName}</h3>
               <p className="text-sm mb-1" style={{ color: theme.textColor, opacity: 0.7 }}>Putri dari</p>
-              <p className="font-medium" style={{ color: theme.textColor }}>{weddingData.brideFather} & {weddingData.brideMother}</p>
-              {weddingData.brideParentsAddress && <p className="text-xs opacity-40 mt-2" style={{ color: theme.textColor }}>{weddingData.brideParentsAddress}</p>}
+              <p className="font-medium text-sm sm:text-base break-words" style={{ color: theme.textColor }}>{weddingData.brideFather} & {weddingData.brideMother}</p>
+              {weddingData.brideParentsAddress && <p className="text-xs opacity-40 mt-2 break-words" style={{ color: theme.textColor }}>{weddingData.brideParentsAddress}</p>}
             </div>
           </div>
           {weddingData.couplePhoto && (
-            <div className="mt-12 rounded-3xl overflow-hidden border shadow-2xl" style={{ borderColor: `${theme.primaryColor}20` }}>
+            <div className="mt-8 sm:mt-12 rounded-3xl overflow-hidden border shadow-2xl" style={{ borderColor: `${theme.primaryColor}20` }}>
               <img src={weddingData.couplePhoto} alt="Couple" className="w-full h-auto" />
             </div>
           )}
@@ -425,13 +425,13 @@ export default function Invitation() {
 
       {/* Countdown */}
       {weddingData.weddingDate && (
-        <section className="py-20 px-6">
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-10" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Menghitung Hari</h2>
-            <div className="grid grid-cols-4 gap-3 md:gap-5">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 sm:mb-10" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Menghitung Hari</h2>
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-5">
               {[{ label: 'Hari', value: countdown.days }, { label: 'Jam', value: countdown.hours }, { label: 'Menit', value: countdown.minutes }, { label: 'Detik', value: countdown.seconds }].map(item => (
-                <div key={item.label} className="p-4 md:p-6 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-                  <p className="text-3xl md:text-5xl font-bold" style={{ color: theme.primaryColor, fontFamily: theme.headingFont, textShadow: `0 0 20px ${theme.primaryColor}30` }}>
+                <div key={item.label} className="p-3 sm:p-4 md:p-6 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+                  <p className="text-2xl sm:text-3xl md:text-5xl font-bold" style={{ color: theme.primaryColor, fontFamily: theme.headingFont, textShadow: `0 0 20px ${theme.primaryColor}30` }}>
                     {String(item.value).padStart(2, '0')}
                   </p>
                   <p className="text-xs mt-2 uppercase tracking-wider" style={{ color: theme.textColor, opacity: 0.5 }}>{item.label}</p>
@@ -443,34 +443,34 @@ export default function Invitation() {
       )}
 
       {/* Events */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-center text-3xl md:text-5xl font-bold mb-12" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Acara</h2>
+          <h2 className="text-center text-2xl sm:text-3xl md:text-5xl font-bold mb-8 sm:mb-12" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Acara</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {weddingData.weddingVenue && (
-              <div className="p-8 rounded-3xl backdrop-blur-md border text-center" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-                <div className="w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center" style={{ background: `${theme.primaryColor}15` }}>
-                  <Heart className="w-7 h-7" style={{ color: theme.primaryColor }} />
+              <div className="p-6 sm:p-8 rounded-3xl backdrop-blur-md border text-center" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-5 rounded-2xl flex items-center justify-center" style={{ background: `${theme.primaryColor}15` }}>
+                  <Heart className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: theme.primaryColor }} />
                 </div>
-                <h3 className="text-xl font-bold mb-5" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Akad Nikah</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-5" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Akad Nikah</h3>
                 <div className="space-y-3" style={{ color: theme.textColor }}>
-                  <p className="flex items-center justify-center gap-2 text-sm"><Calendar className="w-4 h-4" style={{ color: theme.accentColor }} />{formatDate(weddingData.weddingDate)}</p>
-                  <p className="flex items-center justify-center gap-2 text-sm"><Clock className="w-4 h-4" style={{ color: theme.accentColor }} />{weddingData.weddingTime} WIB</p>
-                  <p className="flex items-center justify-center gap-2 text-sm font-medium"><MapPin className="w-4 h-4" style={{ color: theme.accentColor }} />{weddingData.weddingVenue}</p>
+                  <p className="flex items-center justify-center gap-2 text-sm"><Calendar className="w-4 h-4 flex-shrink-0" style={{ color: theme.accentColor }} /><span className="break-words">{formatDate(weddingData.weddingDate)}</span></p>
+                  <p className="flex items-center justify-center gap-2 text-sm"><Clock className="w-4 h-4 flex-shrink-0" style={{ color: theme.accentColor }} />{weddingData.weddingTime} WIB</p>
+                  <p className="flex items-center justify-center gap-2 text-sm font-medium"><MapPin className="w-4 h-4 flex-shrink-0" style={{ color: theme.accentColor }} /><span className="break-words">{weddingData.weddingVenue}</span></p>
                 </div>
                 {weddingData.mapLink && <a href={weddingData.mapLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full text-sm font-medium" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`, color: '#fff' }}><MapPin className="w-4 h-4" />Lihat Peta</a>}
               </div>
             )}
             {weddingData.receptionVenue && (
-              <div className="p-8 rounded-3xl backdrop-blur-md border text-center" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-                <div className="w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center" style={{ background: `${theme.primaryColor}15` }}>
-                  <Calendar className="w-7 h-7" style={{ color: theme.primaryColor }} />
+              <div className="p-6 sm:p-8 rounded-3xl backdrop-blur-md border text-center" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-5 rounded-2xl flex items-center justify-center" style={{ background: `${theme.primaryColor}15` }}>
+                  <Calendar className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: theme.primaryColor }} />
                 </div>
-                <h3 className="text-xl font-bold mb-5" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Resepsi</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-5" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Resepsi</h3>
                 <div className="space-y-3" style={{ color: theme.textColor }}>
-                  <p className="flex items-center justify-center gap-2 text-sm"><Calendar className="w-4 h-4" style={{ color: theme.accentColor }} />{formatDate(weddingData.receptionDate)}</p>
-                  <p className="flex items-center justify-center gap-2 text-sm"><Clock className="w-4 h-4" style={{ color: theme.accentColor }} />{weddingData.receptionTime} WIB</p>
-                  <p className="flex items-center justify-center gap-2 text-sm font-medium"><MapPin className="w-4 h-4" style={{ color: theme.accentColor }} />{weddingData.receptionVenue}</p>
+                  <p className="flex items-center justify-center gap-2 text-sm"><Calendar className="w-4 h-4 flex-shrink-0" style={{ color: theme.accentColor }} /><span className="break-words">{formatDate(weddingData.receptionDate)}</span></p>
+                  <p className="flex items-center justify-center gap-2 text-sm"><Clock className="w-4 h-4 flex-shrink-0" style={{ color: theme.accentColor }} />{weddingData.receptionTime} WIB</p>
+                  <p className="flex items-center justify-center gap-2 text-sm font-medium"><MapPin className="w-4 h-4 flex-shrink-0" style={{ color: theme.accentColor }} /><span className="break-words">{weddingData.receptionVenue}</span></p>
                 </div>
                 {weddingData.mapLink && <a href={weddingData.mapLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full text-sm font-medium" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`, color: '#fff' }}><MapPin className="w-4 h-4" />Lihat Peta</a>}
               </div>
@@ -481,11 +481,11 @@ export default function Invitation() {
 
       {/* Story */}
       {weddingData.story && (
-        <section className="py-20 px-6">
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Our Story</h2>
-            <div className="p-8 rounded-3xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-              <p className="leading-relaxed" style={{ color: theme.textColor }}>{weddingData.story}</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Our Story</h2>
+            <div className="p-6 sm:p-8 rounded-3xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+              <p className="leading-relaxed text-sm sm:text-base" style={{ color: theme.textColor }}>{weddingData.story}</p>
             </div>
           </div>
         </section>
@@ -493,31 +493,31 @@ export default function Invitation() {
 
       {/* Gift */}
       {(weddingData.bankName || weddingData.bankName2) && (
-        <section className="py-20 px-6">
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-12 h-px" style={{ background: `${theme.primaryColor}40` }} />
               <Gift className="w-6 h-6" style={{ color: theme.primaryColor }} />
               <div className="w-12 h-px" style={{ background: `${theme.primaryColor}40` }} />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Amplop Digital</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Amplop Digital</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 sm:mt-10">
               {weddingData.bankName && (
-                <div className="p-6 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-                  <p className="font-bold text-lg mb-2" style={{ color: theme.primaryColor }}>{weddingData.bankName}</p>
-                  <p className="text-2xl font-mono font-bold mb-1" style={{ color: theme.textColor }}>{weddingData.bankAccount}</p>
+                <div className="p-5 sm:p-6 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+                  <p className="font-bold text-base sm:text-lg mb-2" style={{ color: theme.primaryColor }}>{weddingData.bankName}</p>
+                  <p className="text-xl sm:text-2xl font-mono font-bold mb-1 break-all" style={{ color: theme.textColor }}>{weddingData.bankAccount}</p>
                   <p className="text-sm opacity-60" style={{ color: theme.textColor }}>a.n. {weddingData.bankHolder}</p>
-                  <button onClick={() => navigator.clipboard.writeText(weddingData.bankAccount)} className="mt-4 px-5 py-2 rounded-full text-sm font-medium" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}30` }}>
+                  <button onClick={() => navigator.clipboard.writeText(weddingData.bankAccount)} className="mt-4 px-5 py-2.5 rounded-full text-sm font-medium min-h-[44px]" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}30` }}>
                     Salin No. Rekening
                   </button>
                 </div>
               )}
               {weddingData.bankName2 && (
-                <div className="p-6 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
-                  <p className="font-bold text-lg mb-2" style={{ color: theme.primaryColor }}>{weddingData.bankName2}</p>
-                  <p className="text-2xl font-mono font-bold mb-1" style={{ color: theme.textColor }}>{weddingData.bankAccount2}</p>
+                <div className="p-5 sm:p-6 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+                  <p className="font-bold text-base sm:text-lg mb-2" style={{ color: theme.primaryColor }}>{weddingData.bankName2}</p>
+                  <p className="text-xl sm:text-2xl font-mono font-bold mb-1 break-all" style={{ color: theme.textColor }}>{weddingData.bankAccount2}</p>
                   <p className="text-sm opacity-60" style={{ color: theme.textColor }}>a.n. {weddingData.bankHolder2}</p>
-                  <button onClick={() => navigator.clipboard.writeText(weddingData.bankAccount2)} className="mt-4 px-5 py-2 rounded-full text-sm font-medium" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}30` }}>
+                  <button onClick={() => navigator.clipboard.writeText(weddingData.bankAccount2)} className="mt-4 px-5 py-2.5 rounded-full text-sm font-medium min-h-[44px]" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}30` }}>
                     Salin No. Rekening
                   </button>
                 </div>
@@ -528,16 +528,16 @@ export default function Invitation() {
       )}
 
       {/* RSVP */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Konfirmasi Kehadiran</h2>
-          <div className="p-8 rounded-3xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Konfirmasi Kehadiran</h2>
+          <div className="p-6 sm:p-8 rounded-3xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
             {!showRSVP ? (
               <div className="space-y-5">
                 <p className="text-sm opacity-60" style={{ color: theme.textColor }}>Mohon konfirmasi kehadiran Anda</p>
                 <div className="flex gap-3 justify-center flex-wrap">
-                  <button onClick={() => { setRsvpStatus('accepted'); setShowRSVP(true); }} className="px-8 py-3 rounded-xl font-medium text-sm" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}40` }}>✓ Hadir</button>
-                  <button onClick={() => { setRsvpStatus('declined'); setShowRSVP(true); }} className="px-8 py-3 rounded-xl font-medium text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>✗ Tidak Hadir</button>
+                  <button onClick={() => { setRsvpStatus('accepted'); setShowRSVP(true); }} className="px-6 sm:px-8 py-3 rounded-xl font-medium text-sm min-h-[44px]" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}40` }}>✓ Hadir</button>
+                  <button onClick={() => { setRsvpStatus('declined'); setShowRSVP(true); }} className="px-6 sm:px-8 py-3 rounded-xl font-medium text-sm min-h-[44px]" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>✗ Tidak Hadir</button>
                 </div>
               </div>
             ) : (
@@ -545,7 +545,7 @@ export default function Invitation() {
                 {rsvpStatus === 'accepted' ? (
                   <>
                     <p className="text-green-500 font-medium">✓ Terima kasih! Anda akan hadir</p>
-                    <select value={rsvpCount} onChange={e => setRsvpCount(Number(e.target.value))} className="mt-2 p-3 rounded-xl border w-full text-sm" style={{ borderColor: `${theme.primaryColor}40`, color: theme.textColor }}>
+                    <select value={rsvpCount} onChange={e => setRsvpCount(Number(e.target.value))} className="mt-2 p-3 rounded-xl border w-full text-sm min-h-[44px]" style={{ borderColor: `${theme.primaryColor}40`, color: theme.textColor }}>
                       {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} orang</option>)}
                     </select>
                   </>
@@ -559,14 +559,14 @@ export default function Invitation() {
       </section>
 
       {/* Wishes */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-center text-3xl md:text-4xl font-bold mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Ucapan & Doa</h2>
-          <div className="p-6 rounded-3xl backdrop-blur-md border mb-6" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
+          <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Ucapan & Doa</h2>
+          <div className="p-4 sm:p-6 rounded-3xl backdrop-blur-md border mb-6" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}20` }}>
             <div className="space-y-3">
-              <input type="text" value={wishName} onChange={e => setWishName(e.target.value)} placeholder="Nama Anda" className="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 text-sm" style={{ borderColor: `${theme.primaryColor}30`, color: theme.textColor }} />
+              <input type="text" value={wishName} onChange={e => setWishName(e.target.value)} placeholder="Nama Anda" className="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 text-sm min-h-[44px]" style={{ borderColor: `${theme.primaryColor}30`, color: theme.textColor }} />
               <textarea value={wishMessage} onChange={e => setWishMessage(e.target.value)} placeholder="Tulis ucapan & doa..." rows={3} className="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 text-sm resize-none" style={{ borderColor: `${theme.primaryColor}30`, color: theme.textColor }} />
-              <button onClick={submitWish} className="w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`, color: '#fff' }}>
+              <button onClick={submitWish} className="w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 min-h-[44px]" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`, color: '#fff' }}>
                 <Send className="w-4 h-4" /> Kirim Ucapan
               </button>
             </div>
@@ -574,9 +574,9 @@ export default function Invitation() {
           <div className="space-y-3 max-h-80 overflow-y-auto">
             {wishes.map((wish, i) => (
               <div key={i} className="p-4 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}15` }}>
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-semibold text-sm" style={{ color: theme.primaryColor }}>{wish.name}</p>
-                  <p className="text-xs" style={{ color: theme.textColor, opacity: 0.4 }}>{wish.time}</p>
+                <div className="flex items-center justify-between mb-1 gap-2">
+                  <p className="font-semibold text-sm truncate" style={{ color: theme.primaryColor }}>{wish.name}</p>
+                  <p className="text-xs flex-shrink-0" style={{ color: theme.textColor, opacity: 0.4 }}>{wish.time}</p>
                 </div>
                 <p className="text-sm" style={{ color: theme.textColor, opacity: 0.8 }}>{wish.message}</p>
               </div>
@@ -587,8 +587,8 @@ export default function Invitation() {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-6 text-center" style={{ borderTop: `1px solid ${theme.primaryColor}15` }}>
-        <p className="text-2xl md:text-3xl font-bold mt-6" style={{ color: theme.primaryColor, fontFamily: theme.scriptFont, textShadow: `0 0 20px ${theme.primaryColor}20` }}>
+      <footer className="py-12 sm:py-16 px-4 sm:px-6 text-center" style={{ borderTop: `1px solid ${theme.primaryColor}15` }}>
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold mt-6 break-words" style={{ color: theme.primaryColor, fontFamily: theme.scriptFont, textShadow: `0 0 20px ${theme.primaryColor}20` }}>
           {weddingData.groomName} & {weddingData.brideName}
         </p>
         <div className="flex items-center justify-center gap-3 mt-6">
