@@ -41,17 +41,8 @@ export default function Invitation() {
         setOwnerUsername(user);
       }
     } else {
-      // Find first live user
-      const liveUsers = store.users.filter(u => {
-        const isLive = store.liveMap[u.username] || false;
-        return isLive && u.isActive;
-      });
-      if (liveUsers.length > 0) {
-        setOwnerUsername(liveUsers[0].username);
-      } else if (store.users.length > 0) {
-        // Fallback: show first user
-        setOwnerUsername(store.users[0].username);
-      }
+      // No user parameter - show default template (no user data)
+      // Don't set ownerUsername, so it will use defaultTemplateData
     }
 
     // Load wishes
