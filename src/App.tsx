@@ -16,9 +16,16 @@ function App() {
       const params = new URLSearchParams(window.location.search);
       const userParam = params.get('user');
       const toParam = params.get('to');
+      const previewParam = params.get('preview');
 
-      // If ?user=username is in URL WITHOUT ?to parameter → go to dashboard edit
-      if (userParam && !toParam && !hash) {
+      // If ?user=username&preview=true → show invitation preview (no auto-login)
+      if (userParam && previewParam === 'true') {
+        setCurrentPage('invitation');
+        return;
+      }
+
+      // If ?user=username is in URL WITHOUT ?to and WITHOUT ?preview → go to dashboard edit
+      if (userParam && !toParam && !previewParam && !hash) {
         const store = useStore.getState();
         const user = store.users.find(u => u.username === userParam);
         

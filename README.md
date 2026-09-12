@@ -49,6 +49,7 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 | URL | Fungsi |
 |-----|--------|
 | `yoursite.com/?user=username` | **Auto-login** → Langsung ke dashboard edit data pernikahan |
+| `yoursite.com/?user=username&preview=true` | Preview undangan (tanpa auto-login, view only) |
 | `yoursite.com/?user=username&to=NamaTamu` | Menampilkan undangan untuk tamu spesifik |
 | `yoursite.com/` | Menampilkan undangan default (user pertama yang live) |
 | `yoursite.com/#/admin` | Login manual admin panel |
@@ -85,8 +86,23 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 
 ### 4. Akses Undangan
 - **Edit data pernikahan**: `yoursite.com/?user=username` (auto-login, langsung ke dashboard edit)
+- **Preview undangan**: `yoursite.com/?user=username&preview=true` (view only, tanpa auto-login)
 - **Undangan untuk tamu**: `yoursite.com/?user=username&to=NamaTamu`
 - **Undangan default**: `yoursite.com/` (menampilkan undangan user pertama yang live)
+
+### 5. Link Go Live
+Setelah user klik "Go Live!", sistem akan menampilkan:
+- **Link undangan**: `yoursite.com/?user=username`
+- **Atas nama**: Nama display user yang edit (contoh: "Atas nama: Budi Santoso")
+- **Tombol "Salin Link"**: Untuk copy link undangan dengan mudah
+
+### 6. Tamu Menerima Undangan
+1. User menambahkan tamu dengan nama dan nomor WhatsApp
+2. Sistem generate link personal: `yoursite.com/?user=username&to=NamaTamu`
+3. User klik "Kirim WA" → otomatis buka WhatsApp dengan pesan undangan
+4. Tamu buka link → melihat undangan dengan nama mereka
+5. Footer undangan menampilkan: "© 2025 Wedding Invitation by [Nama User]"
+6. Tamu bisa RSVP dan kirim ucapan
 
 ## 📋 Format Import Tamu Massal
 ```

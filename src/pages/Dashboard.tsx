@@ -163,7 +163,7 @@ export default function Dashboard({ onLogout }: Props) {
 
         {/* Preview Button */}
         <div className="mb-6">
-          <a href={window.location.pathname} target="_blank" rel="noopener noreferrer"
+          <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-amber-700 transition shadow-lg shadow-amber-500/25">
             <Globe className="w-5 h-5" /> Preview Undangan
           </a>
@@ -199,7 +199,7 @@ export default function Dashboard({ onLogout }: Props) {
                   {saveStatus === 'saved' && <><Check className="w-3 h-3" /> Tersimpan</>}
                   {saveStatus === 'idle' && <><div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif</>}
                 </div>
-                <a href={window.location.pathname + '?user=' + store.currentUser?.username} target="_blank" rel="noopener noreferrer"
+                <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition text-sm font-medium shadow-md">
                   <Globe className="w-4 h-4" /> Preview
                 </a>
@@ -416,7 +416,24 @@ export default function Dashboard({ onLogout }: Props) {
               {isLive && (
                 <div className="mt-4 p-4 bg-green-50 rounded-xl">
                   <p className="text-sm text-green-700 font-medium">🎉 Website undangan Anda LIVE!</p>
-                  <p className="text-sm text-green-600 mt-1">Link: <code className="bg-green-100 px-2 py-0.5 rounded">{window.location.origin}{window.location.pathname}</code></p>
+                  <p className="text-sm text-green-600 mt-1">
+                    <span className="font-medium">Link undangan:</span>{' '}
+                    <code className="bg-green-100 px-2 py-0.5 rounded break-all">
+                      {window.location.origin}{window.location.pathname}?user={store.currentUser?.username}
+                    </code>
+                  </p>
+                  <p className="text-xs text-green-600 mt-2">
+                    Atas nama: <span className="font-semibold">{store.currentUser?.displayName}</span>
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?user=${store.currentUser?.username}`);
+                      alert('Link berhasil disalin!');
+                    }}
+                    className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                  >
+                    📋 Salin Link
+                  </button>
                 </div>
               )}
             </div>
