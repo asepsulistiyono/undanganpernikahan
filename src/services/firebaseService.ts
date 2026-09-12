@@ -57,9 +57,28 @@ export const getWeddingData = async (username: string): Promise<WeddingData | nu
 };
 
 export const saveWeddingData = async (username: string, data: WeddingData): Promise<void> => {
-  console.log('Firebase saveWeddingData called:', { username, bridePhoto: data.bridePhoto, groomPhoto: data.groomPhoto });
-  await setDoc(doc(db, WEDDING_DATA_COLLECTION, username), data);
-  console.log('Firebase saveWeddingData completed');
+  console.log('Firebase saveWeddingData called for user:', username);
+  console.log('Bride photo length:', data.bridePhoto?.length || 0);
+  console.log('Groom photo length:', data.groomPhoto?.length || 0);
+  
+  // Calculate total document size (approximate)
+  const jsonString = JSON.stringify(data);
+  const sizeInBytes = new Blob([jsonString]).size;
+  const sizeInKB = (sizeInBytes / 1024).toFixed(2);
+  console.log('Document size:', sizeInKB, 'KB');
+  
+  // Firestore has a 1MB limit per document
+  if (sizeInBytes > 900 * 1024) { // 900KB to be safe
+    console.warn('Document size is close to Firestore limit (1MB). Images may be too large.');
+  }
+  
+  try {
+    await setDoc(doc(db, WEDDING_DATA_COLLECTION, username), data);
+    console.log('Firebase saveWeddingData completed successfully');
+  } catch (error) {
+    console.error('Firebase saveWeddingData error:', error);
+    throw error;
+  }
 };
 
 export const onWeddingDataChange = (username: string, callback: (data: WeddingData | null) => void): Unsubscribe => {

@@ -16,23 +16,41 @@ export async function compressImage(
   file: File,
   options: CompressionOptions = defaultOptions
 ): Promise<string> {
+  // Detect mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  console.log('Compressing image, isMobile:', isMobile, 'file size:', file.size);
+  
   try {
-    const compressedFile = await imageCompression(file, {
-      maxSizeMB: options.maxSizeMB || 0.5,
-      maxWidthOrHeight: options.maxWidthOrHeight || 1200,
-      useWebWorker: options.useWebWorker ?? true,
-      initialQuality: 0.8,
+    // Use more aggressive compression on mobile
+    const compressionOptions = {
+      maxSizeMB: isMobile ? 0.3 : (options.maxSizeMB || 0.5), // 300KB on mobile, 500KB on desktop
+      maxWidthOrHeight: isMobile ? 800 : (options.maxWidthOrHeight || 1200), // Smaller on mobile
+      useWebWorker: isMobile ? false : (options.useWebWorker ?? true), // Disable WebWorker on mobile
+      initialQuality: isMobile ? 0.7 : 0.8,
       fileType: 'image/webp'
-    });
+    };
+    
+    console.log('Compression options:', compressionOptions);
+    
+    const compressedFile = await imageCompression(file, compressionOptions);
+    console.log('Compressed file size:', compressedFile.size);
 
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        console.log('Data URL length:', result.length);
+        resolve(result);
+      };
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        reject(error);
+      };
       reader.readAsDataURL(compressedFile);
     });
   } catch (error) {
     console.error('Compression error:', error);
+    console.log('Falling back to original file');
     // Fallback: read original file
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
