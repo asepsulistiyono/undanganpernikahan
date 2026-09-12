@@ -32,20 +32,24 @@ function App() {
       }
 
       // If ?user=username (without &to and without &preview) → auto-login & go to dashboard
-      if (userParam && !previewParam) {
+      if (userParam && !previewParam && !toParam) {
         const store = useStore.getState();
         const user = store.users.find(u => u.username === userParam);
         
         if (user && user.isActive) {
-          // Set hash FIRST before login to avoid race condition
-          window.location.hash = '#/admin';
           // Auto-login this user
           store.login(user.username, user.password);
-          // Clean URL - remove ?user= param so refresh doesn't re-trigger
-          const url = new URL(window.location.href);
-          url.searchParams.delete('user');
-          window.history.replaceState({}, '', url.toString());
-          setCurrentPage('dashboard');
+          // Clean URL completely
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, '', cleanUrl);
+          // Navigate based on role
+          if (user.role === 'super-admin') {
+            window.location.hash = '#/super-admin';
+            setCurrentPage('super-admin');
+          } else {
+            window.location.hash = '#/admin';
+            setCurrentPage('dashboard');
+          }
           return;
         } else {
           // User not found or inactive - show invitation

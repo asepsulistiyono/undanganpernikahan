@@ -74,22 +74,28 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
 
   // Handlers
   const handleAddUser = () => {
-    if (!newUser.username || !newUser.password || !newUser.displayName) {
-      alert('Username, password, dan display name harus diisi');
-      return;
-    }
-    const { createUser } = useStore.getState();
-    const success = createUser({
-      username: newUser.username,
-      password: newUser.password,
-      displayName: newUser.displayName,
-      role: newUser.role
-    });
-    if (success) {
-      setNewUser({ username: '', password: '', displayName: '', role: 'user' });
-      setShowAddModal(false);
-    } else {
-      alert('Username sudah digunakan');
+    try {
+      if (!newUser.username || !newUser.password || !newUser.displayName) {
+        alert('Username, password, dan display name harus diisi');
+        return;
+      }
+      const { createUser } = useStore.getState();
+      const success = createUser({
+        username: newUser.username,
+        password: newUser.password,
+        displayName: newUser.displayName,
+        role: newUser.role
+      });
+      if (success) {
+        setNewUser({ username: '', password: '', displayName: '', role: 'user' });
+        setShowAddModal(false);
+        alert('User berhasil ditambahkan!');
+      } else {
+        alert('Username sudah digunakan');
+      }
+    } catch (error) {
+      console.error('Error adding user:', error);
+      alert('Terjadi kesalahan saat menambahkan user: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
