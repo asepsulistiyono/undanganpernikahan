@@ -134,7 +134,7 @@ export const useStore = create<StoreState>()(
         }
         const newUser: AdminUser = {
           ...userData,
-          role: 'user',
+          role: userData.role || 'user',
           createdAt: new Date().toISOString(),
           isActive: true
         };
