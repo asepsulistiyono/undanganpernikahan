@@ -24,11 +24,33 @@ function App() {
         return;
       }
 
-      // If ?user=username is in URL → show invitation page with that user's data
-      if (userParam && !hash) {
-        // Just show the invitation page - it will handle the user parameter
+      // If ?user=username&to=name → show invitation with guest name
+      if (userParam && toParam) {
         setCurrentPage('invitation');
         return;
+      }
+
+      // If ?user=username (without &to and without &preview) → auto-login & go to dashboard
+      if (userParam && !previewParam) {
+        const store = useStore.getState();
+        const user = store.users.find(u => u.username === userParam);
+        
+        if (user && user.isActive) {
+          // Auto-login this user and go to dashboard
+          store.login(user.username, user.password);
+          // Clean URL - remove ?user= param so refresh doesn't re-trigger
+          const url = new URL(window.location.href);
+          url.searchParams.delete('user');
+          window.history.replaceState({}, '', url.toString());
+          // Navigate to admin hash
+          window.location.hash = '#/admin';
+          setCurrentPage('dashboard');
+          return;
+        } else {
+          // User not found or inactive - show invitation
+          setCurrentPage('invitation');
+          return;
+        }
       }
 
       // Admin routes
