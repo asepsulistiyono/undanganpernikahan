@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
 import { AdminUser } from '../types';
 import ImageUpload from '../components/ImageUpload';
 import FontSelector from '../components/FontSelector';
+import * as firebaseService from '../services/firebaseService';
 import {
   LogOut, Heart, Users, Palette, Settings, Globe, Upload,
   Plus, Trash2, Search, MessageCircle, FileText, Download, Edit3, X, Check, Copy,
@@ -20,12 +21,62 @@ export default function Dashboard({ onLogout }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('wedding');
   const store = useStore();
   const isSuperAdmin = store.currentUser?.role === 'super-admin';
+  const currentUser = store.currentUser;
 
   // Scoped data for current user
   const weddingData = store.getWeddingData();
   const selectedTheme = store.getSelectedTheme();
   const guests = store.getGuests();
   const isLive = store.isLive();
+
+  // Load data from Firebase when user logs in
+  useEffect(() => {
+    if (currentUser) {
+      // Load data in parallel without blocking UI
+      const loadData = async () => {
+        try {
+          // Load all data in parallel
+          const [weddingDataFromFirebase, themeFromFirebase, guestsFromFirebase, liveStatusFromFirebase] = await Promise.all([
+            firebaseService.getWeddingData(currentUser.username),
+            firebaseService.getTheme(currentUser.username),
+            firebaseService.getGuests(currentUser.username),
+            firebaseService.getLiveStatus(currentUser.username)
+          ]);
+          
+          // Update store with loaded data
+          if (weddingDataFromFirebase) {
+            const { weddingDataMap } = useStore.getState();
+            useStore.setState({
+              weddingDataMap: { ...weddingDataMap, [currentUser.username]: weddingDataFromFirebase }
+            });
+          }
+          
+          if (themeFromFirebase) {
+            const { themeMap } = useStore.getState();
+            useStore.setState({
+              themeMap: { ...themeMap, [currentUser.username]: themeFromFirebase }
+            });
+          }
+          
+          if (guestsFromFirebase && guestsFromFirebase.length > 0) {
+            const { guestsMap } = useStore.getState();
+            useStore.setState({
+              guestsMap: { ...guestsMap, [currentUser.username]: guestsFromFirebase }
+            });
+          }
+          
+          const { liveMap } = useStore.getState();
+          useStore.setState({
+            liveMap: { ...liveMap, [currentUser.username]: liveStatusFromFirebase }
+          });
+        } catch (error) {
+          console.error('Error loading data from Firebase:', error);
+        }
+      };
+      
+      loadData();
+    }
+  }, [currentUser]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddGuest, setShowAddGuest] = useState(false);
@@ -43,10 +94,10 @@ export default function Dashboard({ onLogout }: Props) {
   );
 
   const updateWeddingDataWithSave = (data: Partial<any>) => {
-    setSaveStatus('saving');
+    // No need for loading state - optimistic update is instant
     store.updateWeddingData(data);
-    setTimeout(() => setSaveStatus('saved'), 300);
-    setTimeout(() => setSaveStatus('idle'), 2000);
+    setSaveStatus('saved');
+    setTimeout(() => setSaveStatus('idle'), 1500);
   };
 
   const generateWALink = (guest: typeof guests[0]) => {

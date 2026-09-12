@@ -10,6 +10,15 @@ type Page = 'invitation' | 'admin-login' | 'dashboard' | 'super-admin';
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('invitation');
   const isAuthenticated = useStore(s => s.isAuthenticated);
+  const isLoading = useStore(s => s.isLoading);
+  const initializeFirebase = useStore(s => s.initializeFirebase);
+
+  // Initialize Firebase on app start
+  useEffect(() => {
+    initializeFirebase().catch(err => {
+      console.error('Failed to initialize Firebase:', err);
+    });
+  }, []);
 
   useEffect(() => {
     const checkRoute = () => {
@@ -42,21 +51,22 @@ function App() {
         
         if (user && user.isActive) {
           // Auto-login this user
-          const loginSuccess = store.login(user.username, user.password);
-          console.log('Login success:', loginSuccess);
-          
-          // Clean URL completely
-          const cleanUrl = window.location.origin + window.location.pathname;
-          window.history.replaceState({}, '', cleanUrl);
-          
-          // Navigate based on role
-          if (user.role === 'super-admin') {
-            window.location.hash = '#/super-admin';
-            setCurrentPage('super-admin');
-          } else {
-            window.location.hash = '#/admin';
-            setCurrentPage('dashboard');
-          }
+          store.login(user.username, user.password).then((loginSuccess) => {
+            console.log('Login success:', loginSuccess);
+            
+            // Clean URL completely
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, '', cleanUrl);
+            
+            // Navigate based on role
+            if (user.role === 'super-admin') {
+              window.location.hash = '#/super-admin';
+              setCurrentPage('super-admin');
+            } else {
+              window.location.hash = '#/admin';
+              setCurrentPage('dashboard');
+            }
+          });
           return;
         } else if (user && !user.isActive) {
           // User exists but inactive
@@ -122,6 +132,18 @@ function App() {
     window.history.replaceState({}, '', url.toString());
     setCurrentPage('invitation');
   };
+
+  // Show loading screen while Firebase is initializing
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   switch (currentPage) {
     case 'admin-login':

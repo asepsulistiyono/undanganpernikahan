@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
 import { availableFonts } from '../themes/fonts';
 import { WeddingData } from '../types';
+import * as firebaseService from '../services/firebaseService';
 import { Heart, MapPin, Calendar, Clock, Gift, Music, ChevronDown, MessageCircle, Send, Sparkles, ArrowRight, XCircle } from 'lucide-react';
 
 export default function Invitation() {
@@ -22,6 +23,9 @@ export default function Invitation() {
   const [showRSVP, setShowRSVP] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [firebaseWeddingData, setFirebaseWeddingData] = useState<WeddingData | null>(null);
+  const [firebaseTheme, setFirebaseTheme] = useState<string>('elegant-gold');
+  const [firebaseIsLive, setFirebaseIsLive] = useState<boolean>(false);
 
   useEffect(() => {
     // Parse URL parameters - compatible with mobile browsers
@@ -41,17 +45,42 @@ export default function Invitation() {
 
     // Determine which user's invitation to show
     if (user) {
-      // Check if user exists and is active
-      const foundUser = store.users.find(u => u.username === user);
-      console.log('Found user for invitation:', foundUser);
+      // Load data from Firebase
+      const loadData = async () => {
+        try {
+          // Check if user exists and is active
+          const users = await firebaseService.getUsers();
+          const foundUser = users.find(u => u.username === user);
+          console.log('Found user for invitation:', foundUser);
+          
+          if (!foundUser) {
+            setErrorMessage(`User "${user}" tidak ditemukan`);
+          } else if (!foundUser.isActive) {
+            setErrorMessage(`User "${user}" tidak aktif`);
+          } else {
+            setOwnerUsername(user);
+            
+            // Load wedding data from Firebase
+            const weddingData = await firebaseService.getWeddingData(user);
+            if (weddingData) {
+              setFirebaseWeddingData(weddingData);
+            }
+            
+            // Load theme from Firebase
+            const theme = await firebaseService.getTheme(user);
+            setFirebaseTheme(theme);
+            
+            // Load live status from Firebase
+            const isLive = await firebaseService.getLiveStatus(user);
+            setFirebaseIsLive(isLive);
+          }
+        } catch (error) {
+          console.error('Error loading invitation data:', error);
+          setErrorMessage('Gagal memuat data undangan');
+        }
+      };
       
-      if (!foundUser) {
-        setErrorMessage(`User "${user}" tidak ditemukan`);
-      } else if (!foundUser.isActive) {
-        setErrorMessage(`User "${user}" tidak aktif`);
-      } else {
-        setOwnerUsername(user);
-      }
+      loadData();
     } else {
       // No user parameter - show default template (no user data)
       // Don't set ownerUsername, so it will use defaultTemplateData
@@ -108,12 +137,12 @@ export default function Invitation() {
 
   // Get data for the owner
   const weddingData: WeddingData = ownerUsername
-    ? (store.weddingDataMap[ownerUsername] || defaultTemplateData)
+    ? (firebaseWeddingData || defaultTemplateData)
     : defaultTemplateData;
 
-  const selectedTheme = ownerUsername ? (store.themeMap[ownerUsername] || 'elegant-gold') : 'elegant-gold';
+  const selectedTheme = ownerUsername ? firebaseTheme : 'elegant-gold';
   // If no ownerUsername (default URL), always show template as live
-  const isLive = ownerUsername ? (store.liveMap[ownerUsername] || false) : true;
+  const isLive = ownerUsername ? firebaseIsLive : true;
   const ownerDisplayName = ownerUsername ? store.getUserDisplayName(ownerUsername) : 'Wedding Template';
 
   const theme = themes.find(t => t.id === selectedTheme) || themes[0];
