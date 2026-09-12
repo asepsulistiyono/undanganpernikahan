@@ -62,6 +62,10 @@ export default function Invitation() {
             
             // Load wedding data from Firebase
             const weddingData = await firebaseService.getWeddingData(user);
+            console.log('Loaded wedding data from Firebase:', weddingData);
+            console.log('Bride photo:', weddingData?.bridePhoto);
+            console.log('Groom photo:', weddingData?.groomPhoto);
+            
             if (weddingData) {
               setFirebaseWeddingData(weddingData);
             }

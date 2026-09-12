@@ -18,20 +18,28 @@ export default function ImageUpload({ value, onChange, label, aspectRatio = '1/1
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    console.log('File selected:', file);
+    
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
+      console.error('Invalid file type:', file.type);
       alert('Hanya file gambar yang diperbolehkan');
       return;
     }
 
     // Validate file size (max 10MB before compression)
     if (file.size > 10 * 1024 * 1024) {
+      console.error('File too large:', file.size);
       alert('Ukuran file terlalu besar (max 10MB sebelum compress)');
       return;
     }
 
+    console.log('Starting compression for:', { name: file.name, size: file.size, type: file.type });
     setIsCompressing(true);
     setProgress(0);
 
@@ -47,8 +55,11 @@ export default function ImageUpload({ value, onChange, label, aspectRatio = '1/1
         useWebWorker: true
       });
 
+      console.log('Compression complete, size:', compressed.length);
       clearInterval(progressInterval);
       setProgress(100);
+      
+      console.log('Calling onChange with compressed image');
       onChange(compressed);
 
       // Show success animation
@@ -137,8 +148,8 @@ export default function ImageUpload({ value, onChange, label, aspectRatio = '1/1
             </div>
           )}
 
-          {/* Overlay actions */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-xl flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+          {/* Overlay actions - always visible on mobile */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-xl flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100">
             <button
               onClick={() => fileInputRef.current?.click()}
               className="px-4 py-2 bg-white/90 text-gray-800 rounded-lg text-sm font-medium hover:bg-white transition"
@@ -153,10 +164,27 @@ export default function ImageUpload({ value, onChange, label, aspectRatio = '1/1
             </button>
           </div>
 
+          {/* Mobile-friendly action buttons - always visible */}
+          <div className="md:hidden flex gap-2 mt-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 px-4 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition min-h-[44px]"
+            >
+              Ganti Foto
+            </button>
+            <button
+              onClick={handleRemove}
+              className="px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition min-h-[44px]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            capture="environment"
             onChange={handleFileChange}
             className="hidden"
           />
