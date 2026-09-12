@@ -213,6 +213,10 @@ export const useStore = create<StoreState>()((set, get) => ({
     const currentData = weddingDataMap[currentUser.username] || defaultWeddingData;
     const newData = { ...currentData, ...data };
     
+    console.log('Updating wedding data:', { username: currentUser.username, field: Object.keys(data)[0], value: Object.values(data)[0] });
+    console.log('New data bridePhoto:', newData.bridePhoto);
+    console.log('New data groomPhoto:', newData.groomPhoto);
+    
     // Optimistic update - update UI immediately
     set({
       weddingDataMap: {
@@ -223,7 +227,9 @@ export const useStore = create<StoreState>()((set, get) => ({
 
     // Debounced save to Firebase (1 second delay)
     debounce(`wedding-${currentUser.username}`, () => {
+      console.log('Saving to Firebase:', { username: currentUser.username, bridePhoto: newData.bridePhoto, groomPhoto: newData.groomPhoto });
       firebaseService.saveWeddingData(currentUser.username, newData)
+        .then(() => console.log('Successfully saved to Firebase'))
         .catch(error => console.error('Error saving wedding data:', error));
     }, 1000);
   },

@@ -57,7 +57,9 @@ export const getWeddingData = async (username: string): Promise<WeddingData | nu
 };
 
 export const saveWeddingData = async (username: string, data: WeddingData): Promise<void> => {
+  console.log('Firebase saveWeddingData called:', { username, bridePhoto: data.bridePhoto, groomPhoto: data.groomPhoto });
   await setDoc(doc(db, WEDDING_DATA_COLLECTION, username), data);
+  console.log('Firebase saveWeddingData completed');
 };
 
 export const onWeddingDataChange = (username: string, callback: (data: WeddingData | null) => void): Unsubscribe => {
