@@ -42,6 +42,17 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 - Neon text effects
 - Responsive design
 
+## 🎨 Template Undangan Default
+
+Ketika mengakses URL default (`yoursite.com/`), sistem akan menampilkan **template undangan contoh** dengan data:
+- **Mempelai Pria**: Ahmad Fauzan (Putra dari H. Muhammad Rizki & Hj. Fatimah Az-Zahra)
+- **Mempelai Wanita**: Siti Nurhaliza (Putri dari H. Abdullah Hakim & Hj. Aisyah Putri)
+- **Tanggal**: 15 Desember 2025
+- **Tema**: Elegant Gold
+- **Font**: Poppins
+
+Template ini berfungsi sebagai demo untuk menunjukkan tampilan undangan sebelum user membuat undangan mereka sendiri.
+
 ## 🚀 Cara Menggunakan
 
 ### Alur Akses URL
@@ -51,7 +62,7 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 | `yoursite.com/?user=username` | **Auto-login** → Langsung ke dashboard edit data pernikahan |
 | `yoursite.com/?user=username&preview=true` | **Link undangan** → Langsung tampilkan undangan (untuk dibagikan) |
 | `yoursite.com/?user=username&to=NamaTamu` | Menampilkan undangan untuk tamu spesifik |
-| `yoursite.com/` | Menampilkan undangan default (user pertama yang live) |
+| `yoursite.com/` | **Menampilkan template undangan contoh** (Ahmad Fauzan & Siti Nurhaliza) |
 | `yoursite.com/#/admin` | Login manual admin panel |
 
 ### 1. Login sebagai Super Admin
@@ -88,7 +99,7 @@ Sans-serif, Serif, Display, Modern, dan Handwriting fonts dari Google Fonts
 - **Edit data pernikahan**: `yoursite.com/?user=username` (auto-login, langsung ke dashboard edit)
 - **Link undangan (Go Live)**: `yoursite.com/?user=username&preview=true` (langsung tampilkan undangan, tanpa auto-login)
 - **Undangan untuk tamu**: `yoursite.com/?user=username&to=NamaTamu`
-- **Undangan default**: `yoursite.com/` (menampilkan undangan user pertama yang live)
+- **Template default**: `yoursite.com/` (menampilkan template undangan contoh dengan data Ahmad Fauzan & Siti Nurhaliza)
 
 ### 5. Link Go Live
 Setelah user klik "Go Live!", sistem akan menampilkan:
