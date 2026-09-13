@@ -201,7 +201,7 @@ export default function Dashboard({ onLogout }: Props) {
             {isSuperAdmin && (
               <a 
                 href="#/super-admin" 
-                className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition text-xs sm:text-sm min-h-[36px]"
+                className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition text-xs sm:text-sm min-h-[36px] font-semibold border-2 border-purple-700"
               >
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Super Admin</span>
@@ -250,7 +250,7 @@ export default function Dashboard({ onLogout }: Props) {
         {/* Preview Button */}
         <div className="mb-6">
           <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-amber-700 transition shadow-lg shadow-amber-500/25 min-h-[48px] text-base">
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold shadow-lg min-h-[48px] text-base border-2 border-amber-600">
             <Globe className="w-5 h-5" /> Preview Undangan
           </a>
         </div>
@@ -286,7 +286,7 @@ export default function Dashboard({ onLogout }: Props) {
                   {saveStatus === 'idle' && <><div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif</>}
                 </div>
                 <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition text-sm font-medium shadow-md min-h-[44px]">
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-md min-h-[44px] border-2 border-amber-600">
                   <Globe className="w-4 h-4" /> Preview
                 </a>
               </div>
