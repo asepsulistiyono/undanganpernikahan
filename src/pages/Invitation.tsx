@@ -442,14 +442,20 @@ export default function Invitation() {
             </h1>
           </div>
 
-          {guestName && (
+                    {guestName && (
             <div className="mt-8 sm:mt-10 inline-block w-full">
               <div className="glass-card px-5 sm:px-7 py-4 sm:py-5 rounded-2xl border relative overflow-hidden"
                 style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}35`, boxShadow: `0 8px 40px ${theme.primaryColor}15` }}>
                 <CornerFlourish color={theme.primaryColor} pos="tl" />
                 <CornerFlourish color={theme.primaryColor} pos="br" />
-                <p className="text-[10px] uppercase tracking-[0.35em] opacity-50 mb-1.5" style={{ color: theme.textColor }}>Kepada Yth.</p>
-                <p className="text-lg sm:text-xl font-bold break-words" style={{ color: theme.primaryColor }}>{guestName}</p>
+                <p className="text-[11px] sm:text-xs uppercase tracking-[0.25em] opacity-70 mb-2"
+                  style={{ color: theme.textColor }}>
+                  Kepada Yth. Bapak/Ibu/Saudara:
+                </p>
+                <p className="text-lg sm:text-xl font-bold break-words"
+                  style={{ color: theme.primaryColor }}>
+                  {guestName}
+                </p>
               </div>
             </div>
           )}
