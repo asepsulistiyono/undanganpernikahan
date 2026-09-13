@@ -26,6 +26,44 @@ export default function Invitation() {
   const [firebaseWeddingData, setFirebaseWeddingData] = useState<WeddingData | null>(null);
   const [firebaseTheme, setFirebaseTheme] = useState<string>('elegant-gold');
   const [firebaseIsLive, setFirebaseIsLive] = useState<boolean>(false);
+  const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, accountId: string) => {
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedAccount(accountId);
+        setTimeout(() => setCopiedAccount(null), 2000);
+      }).catch(() => {
+        // Fallback to old method
+        fallbackCopy(text, accountId);
+      });
+    } else {
+      // Fallback for older browsers
+      fallbackCopy(text, accountId);
+    }
+  };
+
+  const fallbackCopy = (text: string, accountId: string) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      document.execCommand('copy');
+      setCopiedAccount(accountId);
+      setTimeout(() => setCopiedAccount(null), 2000);
+    } catch (err) {
+      alert('Nomor rekening: ' + text);
+    }
+
+    document.body.removeChild(textArea);
+  };
 
   useEffect(() => {
     // Parse URL parameters - compatible with mobile browsers
@@ -529,8 +567,16 @@ export default function Invitation() {
                   <p className="font-bold text-base sm:text-lg mb-2" style={{ color: theme.primaryColor }}>{weddingData.bankName}</p>
                   <p className="text-xl sm:text-2xl font-mono font-bold mb-1 break-all" style={{ color: theme.textColor }}>{weddingData.bankAccount}</p>
                   <p className="text-sm opacity-60" style={{ color: theme.textColor }}>a.n. {weddingData.bankHolder}</p>
-                  <button onClick={() => navigator.clipboard.writeText(weddingData.bankAccount)} className="mt-4 px-5 py-2.5 rounded-full text-sm font-medium min-h-[44px]" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}30` }}>
-                    Salin No. Rekening
+                  <button
+                    onClick={() => copyToClipboard(weddingData.bankAccount, 'bank1')}
+                    className="mt-4 px-5 py-2.5 rounded-full text-sm font-medium min-h-[44px] transition-all"
+                    style={{
+                      background: copiedAccount === 'bank1' ? '#10b981' : `${theme.primaryColor}15`,
+                      color: copiedAccount === 'bank1' ? '#ffffff' : theme.primaryColor,
+                      border: `1px solid ${copiedAccount === 'bank1' ? '#10b981' : theme.primaryColor}30`
+                    }}
+                  >
+                    {copiedAccount === 'bank1' ? '✓ Tersalin!' : 'Salin No. Rekening'}
                   </button>
                 </div>
               )}
@@ -539,8 +585,16 @@ export default function Invitation() {
                   <p className="font-bold text-base sm:text-lg mb-2" style={{ color: theme.primaryColor }}>{weddingData.bankName2}</p>
                   <p className="text-xl sm:text-2xl font-mono font-bold mb-1 break-all" style={{ color: theme.textColor }}>{weddingData.bankAccount2}</p>
                   <p className="text-sm opacity-60" style={{ color: theme.textColor }}>a.n. {weddingData.bankHolder2}</p>
-                  <button onClick={() => navigator.clipboard.writeText(weddingData.bankAccount2)} className="mt-4 px-5 py-2.5 rounded-full text-sm font-medium min-h-[44px]" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor, border: `1px solid ${theme.primaryColor}30` }}>
-                    Salin No. Rekening
+                  <button
+                    onClick={() => copyToClipboard(weddingData.bankAccount2, 'bank2')}
+                    className="mt-4 px-5 py-2.5 rounded-full text-sm font-medium min-h-[44px] transition-all"
+                    style={{
+                      background: copiedAccount === 'bank2' ? '#10b981' : `${theme.primaryColor}15`,
+                      color: copiedAccount === 'bank2' ? '#ffffff' : theme.primaryColor,
+                      border: `1px solid ${copiedAccount === 'bank2' ? '#10b981' : theme.primaryColor}30`
+                    }}
+                  >
+                    {copiedAccount === 'bank2' ? '✓ Tersalin!' : 'Salin No. Rekening'}
                   </button>
                 </div>
               )}
