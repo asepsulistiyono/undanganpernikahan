@@ -31,6 +31,67 @@ export const uploadImage = async (base64Image: string, username: string, imageNa
   }
 };
 
+// Check if image is base64 or URL
+export const isBase64Image = (image: string): boolean => {
+  return image.startsWith('data:image/');
+};
+
+// Migrate base64 images to Firebase Storage
+export const migrateImagesToStorage = async (username: string, weddingData: WeddingData): Promise<WeddingData> => {
+  const migratedData = { ...weddingData };
+  let hasChanges = false;
+
+  // Migrate single images
+  const singleImageFields = ['coverImage', 'groomPhoto', 'bridePhoto', 'couplePhoto'] as const;
+  for (const field of singleImageFields) {
+    const image = migratedData[field];
+    if (image && isBase64Image(image)) {
+      try {
+        console.log(`Migrating ${field} to Storage...`);
+        const url = await uploadImage(image, username, field);
+        migratedData[field] = url;
+        hasChanges = true;
+      } catch (error) {
+        console.error(`Error migrating ${field}:`, error);
+      }
+    }
+  }
+
+  // Migrate gallery images
+  if (migratedData.galleryImages && migratedData.galleryImages.length > 0) {
+    const migratedGallery: string[] = [];
+    for (let i = 0; i < migratedData.galleryImages.length; i++) {
+      const image = migratedData.galleryImages[i];
+      if (isBase64Image(image)) {
+        try {
+          console.log(`Migrating gallery image ${i + 1} to Storage...`);
+          const url = await uploadImage(image, username, `gallery_${i}`);
+          migratedGallery.push(url);
+          hasChanges = true;
+        } catch (error) {
+          console.error(`Error migrating gallery image ${i}:`, error);
+          migratedGallery.push(image); // Keep original if failed
+        }
+      } else {
+        migratedGallery.push(image);
+      }
+    }
+    migratedData.galleryImages = migratedGallery;
+  }
+
+  // Save migrated data if there were changes
+  if (hasChanges) {
+    try {
+      await saveWeddingData(username, migratedData);
+      console.log('Image migration completed successfully');
+    } catch (error) {
+      console.error('Error saving migrated data:', error);
+    }
+  }
+
+  return migratedData;
+};
+
 // Users Collection
 const USERS_COLLECTION = 'users';
 const WEDDING_DATA_COLLECTION = 'weddingData';
@@ -194,3 +255,5 @@ export const onLiveStatusChange = (username: string, callback: (isLive: boolean)
     }
   });
 };
+
+
