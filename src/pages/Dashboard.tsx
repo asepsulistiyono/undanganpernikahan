@@ -38,74 +38,81 @@ export default function Dashboard({ onLogout }: Props) {
   const guests = store.getGuests();
   const isLive = store.isLive();
 
-  useEffect(() => {
-    if (currentUser) {
-      const loadData = async () => {
-        try {
-          const [
-            weddingDataFromFirebase,
-            themeFromFirebase,
-            guestsFromFirebase,
-            liveStatusFromFirebase
-          ] = await Promise.all([
-            firebaseService.getWeddingData(currentUser.username),
-            firebaseService.getTheme(currentUser.username),
-            firebaseService.getGuests(currentUser.username),
-            firebaseService.getLiveStatus(currentUser.username)
-          ]);
+// ✅ PASANG KODE BARU DI SINI
+useEffect(() => {
+  if (!currentUser) return;
 
-          if (weddingDataFromFirebase) {
-            // Auto-migrate base64 images to Firebase Storage
-            const hasBase64Images =
-              firebaseService.isBase64Image(weddingDataFromFirebase.coverImage || '') ||
-              firebaseService.isBase64Image(weddingDataFromFirebase.groomPhoto || '') ||
-              firebaseService.isBase64Image(weddingDataFromFirebase.bridePhoto || '') ||
-              firebaseService.isBase64Image(weddingDataFromFirebase.couplePhoto || '') ||
-              (weddingDataFromFirebase.galleryImages &&
-                weddingDataFromFirebase.galleryImages.some(img => firebaseService.isBase64Image(img)));
+  const username = currentUser.username;
 
-            let finalData = weddingDataFromFirebase;
+  // Initial load
+  (async () => {
+    const [weddingData, themeId, guests, isLive] = await Promise.all([
+      firebaseService.getWeddingData(username),
+      firebaseService.getTheme(username),
+      firebaseService.getGuests(username),
+      firebaseService.getLiveStatus(username),
+    ]);
 
-            if (hasBase64Images) {
-              console.log('Found base64 images, migrating to Firebase Storage...');
-              finalData = await firebaseService.migrateImagesToStorage(
-                currentUser.username,
-                weddingDataFromFirebase
-              );
-            }
+    if (weddingData) {
+      const hasBase64 =
+        firebaseService.isBase64Image(weddingData.coverImage) ||
+        firebaseService.isBase64Image(weddingData.groomPhoto) ||
+        firebaseService.isBase64Image(weddingData.bridePhoto) ||
+        firebaseService.isBase64Image(weddingData.couplePhoto) ||
+        (weddingData.galleryImages || []).some(img => firebaseService.isBase64Image(img));
 
-            const { weddingDataMap } = useStore.getState();
-            useStore.setState({
-              weddingDataMap: { ...weddingDataMap, [currentUser.username]: finalData }
-            });
-          }
+      const finalData = hasBase64
+        ? await firebaseService.migrateImagesToStorage(username, weddingData)
+        : weddingData;
 
-          if (themeFromFirebase) {
-            const { themeMap } = useStore.getState();
-            useStore.setState({
-              themeMap: { ...themeMap, [currentUser.username]: themeFromFirebase }
-            });
-          }
-
-          if (guestsFromFirebase && guestsFromFirebase.length > 0) {
-            const { guestsMap } = useStore.getState();
-            useStore.setState({
-              guestsMap: { ...guestsMap, [currentUser.username]: guestsFromFirebase }
-            });
-          }
-
-          const { liveMap } = useStore.getState();
-          useStore.setState({
-            liveMap: { ...liveMap, [currentUser.username]: liveStatusFromFirebase }
-          });
-        } catch (error) {
-          console.error('Error loading data from Firebase:', error);
-        }
-      };
-
-      loadData();
+      const { weddingDataMap } = useStore.getState();
+      useStore.setState({
+        weddingDataMap: { ...weddingDataMap, [username]: finalData },
+      });
     }
-  }, [currentUser]);
+
+    if (themeId) {
+      const { themeMap } = useStore.getState();
+      useStore.setState({ themeMap: { ...themeMap, [username]: themeId } });
+    }
+
+    if (guests.length) {
+      const { guestsMap } = useStore.getState();
+      useStore.setState({ guestsMap: { ...guestsMap, [username]: guests } });
+    }
+
+    const { liveMap } = useStore.getState();
+    useStore.setState({ liveMap: { ...liveMap, [username]: isLive } });
+  })();
+
+  // Real-time listeners — sinkron antar device
+  const unsubWedding = firebaseService.subscribeWeddingData(username, (data) => {
+    const { weddingDataMap } = useStore.getState();
+    useStore.setState({ weddingDataMap: { ...weddingDataMap, [username]: data } });
+  });
+
+  const unsubTheme = firebaseService.subscribeTheme(username, (themeId) => {
+    const { themeMap } = useStore.getState();
+    useStore.setState({ themeMap: { ...themeMap, [username]: themeId } });
+  });
+
+  const unsubGuests = firebaseService.subscribeGuests(username, (guests) => {
+    const { guestsMap } = useStore.getState();
+    useStore.setState({ guestsMap: { ...guestsMap, [username]: guests } });
+  });
+
+  const unsubLive = firebaseService.subscribeLiveStatus(username, (isLive) => {
+    const { liveMap } = useStore.getState();
+    useStore.setState({ liveMap: { ...liveMap, [username]: isLive } });
+  });
+
+  return () => {
+    unsubWedding();
+    unsubTheme();
+    unsubGuests();
+    unsubLive();
+  };
+}, [currentUser]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddGuest, setShowAddGuest] = useState(false);
