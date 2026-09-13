@@ -12,7 +12,24 @@ import {
   onSnapshot,
   Unsubscribe
 } from 'firebase/firestore';
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { AdminUser, WeddingData, Guest } from '../types';
+
+const storage = getStorage();
+
+// Upload image to Firebase Storage and return URL
+export const uploadImage = async (base64Image: string, username: string, imageName: string): Promise<string> => {
+  try {
+    const storageRef = ref(storage, `wedding-images/${username}/${imageName}_${Date.now()}.jpg`);
+    await uploadString(storageRef, base64Image, 'data_url');
+    const downloadURL = await getDownloadURL(storageRef);
+    console.log('Image uploaded successfully:', downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+};
 
 // Users Collection
 const USERS_COLLECTION = 'users';
@@ -60,18 +77,18 @@ export const saveWeddingData = async (username: string, data: WeddingData): Prom
   console.log('Firebase saveWeddingData called for user:', username);
   console.log('Bride photo length:', data.bridePhoto?.length || 0);
   console.log('Groom photo length:', data.groomPhoto?.length || 0);
-  
+
   // Calculate total document size (approximate)
   const jsonString = JSON.stringify(data);
   const sizeInBytes = new Blob([jsonString]).size;
   const sizeInKB = (sizeInBytes / 1024).toFixed(2);
   console.log('Document size:', sizeInKB, 'KB');
-  
+
   // Firestore has a 1MB limit per document
   if (sizeInBytes > 900 * 1024) { // 900KB to be safe
     console.warn('Document size is close to Firestore limit (1MB). Images may be too large.');
   }
-  
+
   try {
     await setDoc(doc(db, WEDDING_DATA_COLLECTION, username), data);
     console.log('Firebase saveWeddingData completed successfully');
