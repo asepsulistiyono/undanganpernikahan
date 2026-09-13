@@ -65,6 +65,8 @@ export default function Invitation() {
             console.log('Loaded wedding data from Firebase:', weddingData);
             console.log('Bride photo:', weddingData?.bridePhoto);
             console.log('Groom photo:', weddingData?.groomPhoto);
+            console.log('Gallery images:', weddingData?.galleryImages);
+            console.log('Gallery images length:', weddingData?.galleryImages?.length);
 
             if (weddingData) {
               setFirebaseWeddingData(weddingData);
@@ -622,5 +624,4 @@ export default function Invitation() {
     </div>
   );
 }
-
 
