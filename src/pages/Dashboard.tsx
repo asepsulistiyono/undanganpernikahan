@@ -180,7 +180,7 @@ export default function Dashboard({ onLogout }: Props) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
@@ -189,10 +189,10 @@ export default function Dashboard({ onLogout }: Props) {
               {isSuperAdmin ? <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" /> : <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
             </div>
             <div className="min-w-0">
-              <h1 className="font-bold text-gray-800 text-sm sm:text-base truncate">
+              <h1 className="font-bold text-gray-800 text-sm sm:text-base truncate font-sans">
                 {isSuperAdmin ? 'Super Admin' : 'Dashboard'}
               </h1>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-gray-500 truncate font-sans">
                 {store.currentUser?.displayName}
               </p>
             </div>
@@ -222,27 +222,27 @@ export default function Dashboard({ onLogout }: Props) {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
-            <p className="text-xl sm:text-2xl font-bold text-amber-600">{guests.length}</p>
-            <p className="text-xs text-gray-500">Total Tamu</p>
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm font-sans">
+            <p className="text-xl sm:text-2xl font-bold text-amber-600 font-sans">{guests.length}</p>
+            <p className="text-xs text-gray-500 font-sans">Total Tamu</p>
           </div>
-          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
-            <p className="text-xl sm:text-2xl font-bold text-green-600">{guests.filter(g => g.status === 'accepted').length}</p>
-            <p className="text-xs text-gray-500">Konfirmasi Hadir</p>
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm font-sans">
+            <p className="text-xl sm:text-2xl font-bold text-green-600 font-sans">{guests.filter(g => g.status === 'accepted').length}</p>
+            <p className="text-xs text-gray-500 font-sans">Konfirmasi Hadir</p>
           </div>
-          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
-            <p className="text-xl sm:text-2xl font-bold text-blue-600">{guests.filter(g => g.phone).length}</p>
-            <p className="text-xs text-gray-500">Ada No. WA</p>
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm font-sans">
+            <p className="text-xl sm:text-2xl font-bold text-blue-600 font-sans">{guests.filter(g => g.phone).length}</p>
+            <p className="text-xs text-gray-500 font-sans">Ada No. WA</p>
           </div>
           {isSuperAdmin ? (
-            <div className="bg-white rounded-xl p-4 border shadow-sm">
-              <p className="text-2xl font-bold text-purple-600">{store.users.filter(u => u.role === 'user').length}</p>
-              <p className="text-xs text-gray-500">Total User</p>
+            <div className="bg-white rounded-xl p-4 border shadow-sm font-sans">
+              <p className="text-2xl font-bold text-purple-600 font-sans">{store.users.filter(u => u.role === 'user').length}</p>
+              <p className="text-xs text-gray-500 font-sans">Total User</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl p-4 border shadow-sm">
-              <p className="text-2xl font-bold text-purple-600">{themes.length}</p>
-              <p className="text-xs text-gray-500">Tema Tersedia</p>
+            <div className="bg-white rounded-xl p-4 border shadow-sm font-sans">
+              <p className="text-2xl font-bold text-purple-600 font-sans">{themes.length}</p>
+              <p className="text-xs text-gray-500 font-sans">Tema Tersedia</p>
             </div>
           )}
         </div>
@@ -259,7 +259,7 @@ export default function Dashboard({ onLogout }: Props) {
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition min-h-[44px] ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition min-h-[44px] font-sans ${
                 activeTab === tab.id ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25' : 'bg-white text-gray-600 hover:bg-gray-100 border'
               }`}>
               <tab.icon className="w-4 h-4" /> <span className="hidden sm:inline">{tab.label}</span><span className="sm:hidden">{tab.label.split(' ')[0]}</span>
@@ -271,7 +271,7 @@ export default function Dashboard({ onLogout }: Props) {
         {activeTab === 'wedding' && (
           <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
                 <Heart className="w-5 h-5 text-amber-500" /> Data Mempelai & Acara
               </h2>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -367,7 +367,7 @@ export default function Dashboard({ onLogout }: Props) {
         {activeTab === 'guests' && (
           <div className="bg-white rounded-2xl p-6 shadow-sm border">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
                 <Users className="w-5 h-5 text-amber-500" /> Daftar Tamu ({guests.length})
               </h2>
               <div className="flex gap-2 flex-wrap">
@@ -432,7 +432,7 @@ export default function Dashboard({ onLogout }: Props) {
         {activeTab === 'themes' && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
                 <Palette className="w-5 h-5 text-amber-500" /> Pilih Tema ({themes.length})
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -455,7 +455,7 @@ export default function Dashboard({ onLogout }: Props) {
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
                 <Type className="w-5 h-5 text-amber-500" /> Pilih Font
               </h2>
               <FontSelector label="Font Utama" value={weddingData.customFont} onChange={v => updateWeddingDataWithSave({ customFont: v })} />
@@ -470,7 +470,7 @@ export default function Dashboard({ onLogout }: Props) {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
                 <Settings className="w-5 h-5 text-amber-500" /> Pengaturan Akun
               </h2>
               <div className="space-y-4 max-w-md">
@@ -486,7 +486,7 @@ export default function Dashboard({ onLogout }: Props) {
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 font-sans">
                 <Globe className="w-5 h-5 text-amber-500" /> Status Website
               </h2>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -626,7 +626,7 @@ function UserManagement() {
       <div className="bg-white rounded-2xl p-6 shadow-sm border">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
               <UserCheck className="w-5 h-5 text-amber-500" /> Kelola User
             </h2>
             <p className="text-sm text-gray-500 mt-1">Total: {store.users.length} user ({store.users.filter(u => u.role === 'user').length} user biasa, 1 super admin)</p>
@@ -746,14 +746,14 @@ function UserManagement() {
 // Helper Components
 function InputField({ label, value, onChange, type = 'text', placeholder, disabled }: { label: string; value: string; onChange?: (v: string) => void; type?: string; placeholder?: string; disabled?: boolean }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <div className="font-sans">
+      <label className="block text-sm font-medium text-gray-700 mb-1 font-sans">{label}</label>
       {type === 'textarea' ? (
         <textarea value={value} onChange={e => onChange?.(e.target.value)} rows={3} disabled={disabled}
-          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100" />
+          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100 font-sans" />
       ) : (
         <input type={type} value={value} onChange={e => onChange?.(e.target.value)} placeholder={placeholder} disabled={disabled}
-          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100" />
+          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100 font-sans" />
       )}
     </div>
   );
@@ -761,10 +761,10 @@ function InputField({ label, value, onChange, type = 'text', placeholder, disabl
 
 function Modal({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-sans" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto font-sans" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-bold text-gray-800 font-sans">{title}</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
         </div>
         {children}
