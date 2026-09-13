@@ -1,5 +1,3 @@
-<<<<<<< HEAD
---- src/pages/Dashboard.tsx (原始)
 import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
