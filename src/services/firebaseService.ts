@@ -12,7 +12,24 @@ import {
   onSnapshot,
   Unsubscribe
 } from 'firebase/firestore';
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { AdminUser, WeddingData, Guest } from '../types';
+
+const storage = getStorage();
+
+// Upload image to Firebase Storage and return URL
+export const uploadImage = async (base64Image: string, username: string, imageName: string): Promise<string> => {
+  try {
+    const storageRef = ref(storage, `wedding-images/${username}/${imageName}_${Date.now()}.jpg`);
+    await uploadString(storageRef, base64Image, 'data_url');
+    const downloadURL = await getDownloadURL(storageRef);
+    console.log('Image uploaded successfully:', downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+};
 
 // Users Collection
 const USERS_COLLECTION = 'users';

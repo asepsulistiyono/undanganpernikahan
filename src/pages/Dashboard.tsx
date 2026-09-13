@@ -786,6 +786,8 @@ function EditGuestModal({ guest, onClose, onSave }: { guest: any; onClose: () =>
 function GalleryUpload({ images, onChange }: { images: string[]; onChange: (images: string[]) => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
+  const store = useStore();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -793,25 +795,37 @@ function GalleryUpload({ images, onChange }: { images: string[]; onChange: (imag
 
     setIsUploading(true);
     const newImages: string[] = [];
+    const username = store.currentUser?.username || 'unknown';
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) continue;
 
       try {
+        setUploadProgress(`Uploading ${i + 1}/${files.length}...`);
+        
+        // Convert to base64
         const reader = new FileReader();
         const base64 = await new Promise<string>((resolve) => {
           reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(file);
         });
-        newImages.push(base64);
+        
+        // Upload to Firebase Storage
+        const imageUrl = await firebaseService.uploadImage(base64, username, `gallery_${i}`);
+        newImages.push(imageUrl);
       } catch (error) {
-        console.error('Error reading file:', error);
+        console.error('Error uploading file:', error);
+        alert(`Gagal upload gambar: ${file.name}`);
       }
     }
 
-    onChange([...images, ...newImages]);
+    if (newImages.length > 0) {
+      onChange([...images, ...newImages]);
+    }
+    
     setIsUploading(false);
+    setUploadProgress('');
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -843,7 +857,10 @@ function GalleryUpload({ images, onChange }: { images: string[]; onChange: (imag
           className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50 flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
         >
           {isUploading ? (
-            <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-gray-500">{uploadProgress}</span>
+            </div>
           ) : (
             <>
               <Plus className="w-8 h-8 text-gray-400" />
