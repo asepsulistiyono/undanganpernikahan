@@ -495,6 +495,22 @@ export default function Invitation() {
         </section>
       )}
 
+      {/* Gallery */}
+      {weddingData.galleryImages && weddingData.galleryImages.length > 0 && (
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Galeri Foto</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+              {weddingData.galleryImages.map((img, index) => (
+                <div key={index} className="rounded-2xl overflow-hidden border shadow-lg aspect-square" style={{ borderColor: `${theme.primaryColor}20` }}>
+                  <img src={img} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Gift */}
       {(weddingData.bankName || weddingData.bankName2) && (
         <section className="py-16 sm:py-20 px-4 sm:px-6">

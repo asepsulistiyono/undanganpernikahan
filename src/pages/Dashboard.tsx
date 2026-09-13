@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
 import { AdminUser } from '../types';
@@ -302,6 +302,13 @@ export default function Dashboard({ onLogout }: Props) {
                 <h3 className="font-semibold text-indigo-800 flex items-center gap-2"><Camera className="w-5 h-5" /> Foto</h3>
                 <ImageUpload label="Foto Cover / Hero" value={weddingData.coverImage} onChange={v => updateWeddingDataWithSave({ coverImage: v })} aspectRatio="16/9" />
                 <ImageUpload label="Foto Bersama" value={weddingData.couplePhoto} onChange={v => updateWeddingDataWithSave({ couplePhoto: v })} aspectRatio="4/3" />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">📸 Galeri Foto (Multiple)</label>
+                  <GalleryUpload 
+                    images={weddingData.galleryImages || []} 
+                    onChange={imgs => updateWeddingDataWithSave({ galleryImages: imgs })} 
+                  />
+                </div>
               </div>
               <div className="space-y-4 p-4 bg-green-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-green-800">💒 Akad Nikah</h3>
@@ -773,5 +780,89 @@ function EditGuestModal({ guest, onClose, onSave }: { guest: any; onClose: () =>
         </button>
       </div>
     </Modal>
+  );
+}
+
+function GalleryUpload({ images, onChange }: { images: string[]; onChange: (images: string[]) => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    const newImages: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type.startsWith('image/')) continue;
+
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        newImages.push(base64);
+      } catch (error) {
+        console.error('Error reading file:', error);
+      }
+    }
+
+    onChange([...images, ...newImages]);
+    setIsUploading(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemove = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    onChange(newImages);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {images.map((img, index) => (
+          <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
+            <img src={img} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover" />
+            <button
+              onClick={() => handleRemove(index)}
+              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50 flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
+        >
+          {isUploading ? (
+            <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <Plus className="w-8 h-8 text-gray-400" />
+              <span className="text-xs text-gray-500">Tambah Foto</span>
+            </>
+          )}
+        </button>
+      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <p className="text-xs text-gray-500">
+        {images.length} foto tersimpan • Klik "+" untuk menambah foto baru
+      </p>
+    </div>
   );
 }
