@@ -32,9 +32,9 @@ export default function Invitation() {
     const urlParams = new URLSearchParams(window.location.search);
     const to = urlParams.get('to');
     const user = urlParams.get('user');
-
+    
     console.log('Invitation page loaded:', { to, user, search: window.location.search });
-
+    
     if (to) {
       try {
         setGuestName(decodeURIComponent(to));
@@ -52,28 +52,28 @@ export default function Invitation() {
           const users = await firebaseService.getUsers();
           const foundUser = users.find(u => u.username === user);
           console.log('Found user for invitation:', foundUser);
-
+          
           if (!foundUser) {
             setErrorMessage(`User "${user}" tidak ditemukan`);
           } else if (!foundUser.isActive) {
             setErrorMessage(`User "${user}" tidak aktif`);
           } else {
             setOwnerUsername(user);
-
+            
             // Load wedding data from Firebase
             const weddingData = await firebaseService.getWeddingData(user);
             console.log('Loaded wedding data from Firebase:', weddingData);
             console.log('Bride photo:', weddingData?.bridePhoto);
             console.log('Groom photo:', weddingData?.groomPhoto);
-
+            
             if (weddingData) {
               setFirebaseWeddingData(weddingData);
             }
-
+            
             // Load theme from Firebase
             const theme = await firebaseService.getTheme(user);
             setFirebaseTheme(theme);
-
+            
             // Load live status from Firebase
             const isLive = await firebaseService.getLiveStatus(user);
             setFirebaseIsLive(isLive);
@@ -83,7 +83,7 @@ export default function Invitation() {
           setErrorMessage('Gagal memuat data undangan');
         }
       };
-
+      
       loadData();
     } else {
       // No user parameter - show default template (no user data)
