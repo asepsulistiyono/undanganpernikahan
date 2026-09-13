@@ -306,7 +306,7 @@ export default function Dashboard({ onLogout }: Props) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">📸 Galeri Foto (Multiple)</label>
                   <GalleryUpload
                     images={weddingData.galleryImages || []}
-                    onChange={imgs => updateWeddingDataWithSave({ galleryImages: imgs })}
+                    onChange={(imgs: string[]) => updateWeddingDataWithSave({ galleryImages: imgs })}
                   />
                 </div>
               </div>
@@ -551,7 +551,7 @@ export default function Dashboard({ onLogout }: Props) {
       {editingGuest && (
         <EditGuestModal guest={guests.find(g => g.id === editingGuest)!}
           onClose={() => setEditingGuest(null)}
-          onSave={(data) => { store.updateGuest(editingGuest, data); setEditingGuest(null); }} />
+          onSave={(data: any) => { store.updateGuest(editingGuest, data); setEditingGuest(null); }} />
       )}
     </div>
   );
@@ -866,3 +866,4 @@ function GalleryUpload({ images, onChange }: { images: string[]; onChange: (imag
     </div>
   );
 }
+
