@@ -32,9 +32,9 @@ export default function Invitation() {
     const urlParams = new URLSearchParams(window.location.search);
     const to = urlParams.get('to');
     const user = urlParams.get('user');
-    
+
     console.log('Invitation page loaded:', { to, user, search: window.location.search });
-    
+
     if (to) {
       try {
         setGuestName(decodeURIComponent(to));
@@ -52,28 +52,28 @@ export default function Invitation() {
           const users = await firebaseService.getUsers();
           const foundUser = users.find(u => u.username === user);
           console.log('Found user for invitation:', foundUser);
-          
+
           if (!foundUser) {
             setErrorMessage(`User "${user}" tidak ditemukan`);
           } else if (!foundUser.isActive) {
             setErrorMessage(`User "${user}" tidak aktif`);
           } else {
             setOwnerUsername(user);
-            
+
             // Load wedding data from Firebase
             const weddingData = await firebaseService.getWeddingData(user);
             console.log('Loaded wedding data from Firebase:', weddingData);
             console.log('Bride photo:', weddingData?.bridePhoto);
             console.log('Groom photo:', weddingData?.groomPhoto);
-            
+
             if (weddingData) {
               setFirebaseWeddingData(weddingData);
             }
-            
+
             // Load theme from Firebase
             const theme = await firebaseService.getTheme(user);
             setFirebaseTheme(theme);
-            
+
             // Load live status from Firebase
             const isLive = await firebaseService.getLiveStatus(user);
             setFirebaseIsLive(isLive);
@@ -83,7 +83,7 @@ export default function Invitation() {
           setErrorMessage('Gagal memuat data undangan');
         }
       };
-      
+
       loadData();
     } else {
       // No user parameter - show default template (no user data)
@@ -495,6 +495,22 @@ export default function Invitation() {
         </section>
       )}
 
+      {/* Gallery */}
+      {weddingData.galleryImages && weddingData.galleryImages.length > 0 && (
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8" style={{ fontFamily: theme.headingFont, color: theme.primaryColor }}>Galeri Foto</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+              {weddingData.galleryImages.map((img, index) => (
+                <div key={index} className="rounded-2xl overflow-hidden border shadow-lg aspect-square" style={{ borderColor: `${theme.primaryColor}20` }}>
+                  <img src={img} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Gift */}
       {(weddingData.bankName || weddingData.bankName2) && (
         <section className="py-16 sm:py-20 px-4 sm:px-6">
@@ -606,3 +622,5 @@ export default function Invitation() {
     </div>
   );
 }
+
+
