@@ -83,7 +83,7 @@ export default function Dashboard({ onLogout }: Props) {
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [bulkText, setBulkText] = useState('');
   const [editingGuest, setEditingGuest] = useState<string | null>(null);
-  const [newGuest, setNewGuest] = useState({ name: '', group: 'Umum', phone: '', tableNumber: '' });
+  const [newGuest, setNewGuest] = useState({ name: '', group: 'Umum', phone: '', tableNumber: '', status: 'pending' as const, message: '' });
   const [copied, setCopied] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
@@ -145,7 +145,7 @@ export default function Dashboard({ onLogout }: Props) {
   const handleBulkAdd = () => {
     const lines = bulkText.split('\n').filter(l => l.trim());
     const newGuests = lines.map(line => {
-      const parts = line.split(/[,;\t]/).map(p => p.trim());
+      const parts = line.split(/[,\t]/).map(p => p.trim());
       return { name: parts[0] || 'Tamu', group: parts[1] || 'Umum', phone: parts[2] || '', tableNumber: parts[3] || '', status: 'pending' as const, message: '' };
     });
     store.addGuests(newGuests);
@@ -324,8 +324,8 @@ export default function Dashboard({ onLogout }: Props) {
                   <InputField label="Tanggal" type="date" value={weddingData.weddingDate} onChange={v => updateWeddingDataWithSave({ weddingDate: v })} />
                   <InputField label="Waktu" type="time" value={weddingData.weddingTime} onChange={v => updateWeddingDataWithSave({ weddingTime: v })} />
                 </div>
-                <InputField label="Tempat" value={weddingData.weddingVenue} onChange={v => updateWeddingDataWithSave({ weddingVenue: v })} />
-                <InputField label="Alamat" value={weddingData.weddingAddress} onChange={v => updateWeddingDataWithSave({ weddingAddress: v })} />
+                <InputField label="Tempat / Gedung" value={weddingData.weddingVenue} onChange={v => updateWeddingDataWithSave({ weddingVenue: v })} />
+                <InputField label="Alamat Lengkap" value={weddingData.weddingAddress} onChange={v => updateWeddingDataWithSave({ weddingAddress: v })} />
               </div>
               <div className="space-y-4 p-4 bg-purple-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-purple-800">🎉 Resepsi</h3>
@@ -333,11 +333,11 @@ export default function Dashboard({ onLogout }: Props) {
                   <InputField label="Tanggal" type="date" value={weddingData.receptionDate} onChange={v => updateWeddingDataWithSave({ receptionDate: v })} />
                   <InputField label="Waktu" type="time" value={weddingData.receptionTime} onChange={v => updateWeddingDataWithSave({ receptionTime: v })} />
                 </div>
-                <InputField label="Tempat" value={weddingData.receptionVenue} onChange={v => updateWeddingDataWithSave({ receptionVenue: v })} />
-                <InputField label="Alamat" value={weddingData.receptionAddress} onChange={v => updateWeddingDataWithSave({ receptionAddress: v })} />
+                <InputField label="Tempat / Gedung" value={weddingData.receptionVenue} onChange={v => updateWeddingDataWithSave({ receptionVenue: v })} />
+                <InputField label="Alamat Lengkap" value={weddingData.receptionAddress} onChange={v => updateWeddingDataWithSave({ receptionAddress: v })} />
               </div>
-              <div className="space-y-4 p-4 bg-amber-50 rounded-xl md:col-span-2">
-                <h3 className="font-semibold text-amber-800">📖 Kutipan & Cerita</h3>
+              <div className="space-y-4 p-4 bg-orange-50 rounded-xl md:col-span-2">
+                <h3 className="font-semibold text-orange-800">📖 Kutipan & Cerita</h3>
                 <InputField label="Kutipan" type="textarea" value={weddingData.quote} onChange={v => updateWeddingDataWithSave({ quote: v })} />
                 <InputField label="Sumber" value={weddingData.quoteSource} onChange={v => updateWeddingDataWithSave({ quoteSource: v })} />
                 <InputField label="Cerita Cinta" type="textarea" value={weddingData.story} onChange={v => updateWeddingDataWithSave({ story: v })} />
@@ -370,60 +370,72 @@ export default function Dashboard({ onLogout }: Props) {
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
                 <Users className="w-5 h-5 text-amber-500" /> Daftar Tamu ({guests.length})
               </h2>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex flex-wrap gap-2">
                 <button onClick={() => setShowAddGuest(true)} className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm">
-                  <Plus className="w-4 h-4" /> Tambah
+                  <Plus className="w-4 h-4" /> Tambah Tamu
                 </button>
                 <button onClick={() => setShowBulkAdd(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">
-                  <Upload className="w-4 h-4" /> Import Massal
+                  <Upload className="w-4 h-4" /> Import
                 </button>
-                <button onClick={sendAllWhatsApp} className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm">
-                  <MessageCircle className="w-4 h-4" /> Kirim WA
-                </button>
-                <button onClick={exportGuests} className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition text-sm">
+                <button onClick={exportGuests} className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm">
                   <Download className="w-4 h-4" /> Export
                 </button>
-                <button onClick={() => { if(confirm('Hapus semua tamu?')) store.clearAllGuests(); }} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm">
-                  <Trash2 className="w-4 h-4" /> Hapus Semua
+                <button onClick={sendAllWhatsApp} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition text-sm">
+                  <MessageCircle className="w-4 h-4" /> Kirim WA
                 </button>
               </div>
             </div>
+
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Cari nama, grup, atau nomor telepon..."
+                placeholder="Cari tamu..."
                 className="w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto">
-              {filteredGuests.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Belum ada tamu.</p>
-                </div>
-              ) : filteredGuests.map(guest => (
-                <div key={guest.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {filteredGuests.map(guest => (
+                <div key={guest.id} className="flex items-center gap-3 p-4 rounded-xl border hover:bg-gray-50 transition">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold">
+                    {guest.name.charAt(0).toUpperCase()}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 truncate">{guest.name}</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs">{guest.group}</span>
-                      {guest.tableNumber && <span>Meja: {guest.tableNumber}</span>}
-                      {guest.phone && <span>• {guest.phone}</span>}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-gray-800">{guest.name}</p>
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs">{guest.group}</span>
+                      {guest.tableNumber && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">Meja {guest.tableNumber}</span>}
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${
+                        guest.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                        guest.status === 'declined' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {guest.status === 'accepted' ? '✓ Hadir' : guest.status === 'declined' ? '✗ Tidak Hadir' : '⏳ Pending'}
+                      </span>
                     </div>
+                    {guest.phone && <p className="text-sm text-gray-500 mt-1">📱 {guest.phone}</p>}
+                    {guest.message && <p className="text-sm text-gray-600 mt-1 italic">"{guest.message}"</p>}
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => copyWALink(guest)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg" title="Copy Link">
-                      {copied === guest.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    </button>
                     {guest.phone && (
-                      <a href={generateWALink(guest)} target="_blank" rel="noopener noreferrer" className="p-2 text-green-500 hover:bg-green-50 rounded-lg" title="WhatsApp">
-                        <MessageCircle className="w-4 h-4" />
-                      </a>
+                      <button onClick={() => copyWALink(guest)} className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg" title="Copy Link WA">
+                        {copied === guest.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
                     )}
-                    <button onClick={() => setEditingGuest(guest.id)} className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"><Edit3 className="w-4 h-4" /></button>
-                    <button onClick={() => { if(confirm('Hapus?')) store.deleteGuest(guest.id); }} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => setEditingGuest(guest.id)} className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg" title="Edit">
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => { if(confirm('Hapus tamu ini?')) store.deleteGuest(guest.id); }} className="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Hapus">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
+              {filteredGuests.length === 0 && (
+                <div className="text-center py-12 text-gray-400">
+                  <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Belum ada tamu. Klik "Tambah Tamu" untuk memulai.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -435,25 +447,28 @@ export default function Dashboard({ onLogout }: Props) {
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
                 <Palette className="w-5 h-5 text-amber-500" /> Pilih Tema ({themes.length})
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {themes.map(theme => (
                   <button key={theme.id} onClick={() => store.setSelectedTheme(theme.id)}
-                    className={`relative p-4 rounded-xl border-2 transition hover:scale-105 ${
-                      selectedTheme === theme.id ? 'border-amber-500 shadow-lg shadow-amber-500/20' : 'border-gray-200 hover:border-gray-300'
+                    className={`relative rounded-xl overflow-hidden border-2 transition-all ${
+                      selectedTheme === theme.id ? 'border-amber-500 ring-2 ring-amber-500 ring-offset-2' : 'border-gray-200 hover:border-amber-300'
                     }`}>
+                    <div className="h-32 flex items-center justify-center" style={{ background: theme.bgGradient }}>
+                      <span className="text-4xl">{theme.preview}</span>
+                    </div>
+                    <div className="p-3 bg-white">
+                      <p className="font-medium text-gray-800">{theme.name}</p>
+                    </div>
                     {selectedTheme === theme.id && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+                        <Check className="w-5 h-5 text-white" />
                       </div>
                     )}
-                    <div className="w-full h-20 rounded-lg mb-3 flex items-center justify-center text-2xl" style={{ background: theme.bgGradient }}>
-                      {theme.preview}
-                    </div>
-                    <p className="text-sm font-medium text-gray-700 text-center">{theme.name}</p>
                   </button>
                 ))}
               </div>
             </div>
+
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
                 <Type className="w-5 h-5 text-amber-500" /> Pilih Font
@@ -463,9 +478,6 @@ export default function Dashboard({ onLogout }: Props) {
           </div>
         )}
 
-        {/* Users Management Tab (Super Admin Only) */}
-        {activeTab === 'users' && isSuperAdmin && <UserManagement />}
-
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
@@ -473,84 +485,77 @@ export default function Dashboard({ onLogout }: Props) {
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
                 <Settings className="w-5 h-5 text-amber-500" /> Pengaturan Akun
               </h2>
-              <div className="space-y-4 max-w-md">
-                <InputField label="Display Name" value={store.currentUser?.displayName || ''}
-                  onChange={v => store.updateUser(store.currentUser!.username, { displayName: v })} />
-                {store.currentUser?.role !== 'super-admin' && (
-                  <>
-                    <InputField label="Username" value={store.currentUser?.username || ''} disabled />
-                    <InputField label="Password" type="password" value={store.currentUser?.password || ''}
-                      onChange={v => store.updateUser(store.currentUser!.username, { password: v })} />
-                  </>
-                )}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                  <input type="text" value={store.currentUser?.username || ''} disabled
+                    className="w-full p-3 border rounded-xl bg-gray-100 text-gray-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                  <input type="text" value={store.currentUser?.displayName || ''} disabled
+                    className="w-full p-3 border rounded-xl bg-gray-100 text-gray-500" />
+                </div>
               </div>
             </div>
+
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
               <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 font-sans">
                 <Globe className="w-5 h-5 text-amber-500" /> Status Website
               </h2>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
-                  <p className="font-medium text-gray-800">Website {isLive ? 'Aktif (Live)' : 'Tidak Aktif'}</p>
-                  <p className="text-sm text-gray-500">{isLive ? 'Undangan dapat diakses' : 'Undangan belum dapat diakses'}</p>
+                  <p className="font-medium text-gray-800">Undangan {isLive ? 'Aktif' : 'Nonaktif'}</p>
+                  <p className="text-sm text-gray-500">
+                    {isLive ? 'Undangan dapat diakses oleh tamu' : 'Undangan tidak dapat diakses'}
+                  </p>
                 </div>
-                <button onClick={store.toggleLive}
-                  className={`px-6 py-2.5 rounded-xl font-medium transition ${isLive ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'}`}>
-                  {isLive ? 'Matikan' : 'Go Live!'}
+                <button onClick={() => store.toggleLive()}
+                  className={`relative w-14 h-7 rounded-full transition-colors ${isLive ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isLive ? 'translate-x-7' : 'translate-x-0.5'}`} />
                 </button>
               </div>
-              {isLive && (
-                <div className="mt-4 p-4 bg-green-50 rounded-xl">
-                  <p className="text-sm text-green-700 font-medium">🎉 Website undangan Anda LIVE!</p>
-                  <p className="text-sm text-green-600 mt-1">
-                    <span className="font-medium">Link undangan:</span>{' '}
-                    <code className="bg-green-100 px-2 py-0.5 rounded break-all">
-                      {window.location.origin}{window.location.pathname}?user={store.currentUser?.username}&preview=true
-                    </code>
-                  </p>
-                  <p className="text-xs text-green-600 mt-2">
-                    Atas nama: <span className="font-semibold">{store.currentUser?.displayName}</span>
-                  </p>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?user=${store.currentUser?.username}&preview=true`);
-                      alert('Link undangan berhasil disalin!');
-                    }}
-                    className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition"
-                  >
-                    📋 Salin Link
-                  </button>
-                </div>
-              )}
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Link Undangan:</strong><br />
+                  <code className="text-xs bg-blue-100 px-2 py-1 rounded mt-1 inline-block break-all">
+                    {window.location.origin}{window.location.pathname}?user={store.currentUser?.username}
+                  </code>
+                </p>
+              </div>
             </div>
           </div>
         )}
+
+        {/* Users Management Tab (Super Admin Only) */}
+        {activeTab === 'users' && isSuperAdmin && <UserManagement />}
       </div>
 
-      {/* Modals */}
+      {/* Add Guest Modal */}
       {showAddGuest && (
-        <Modal onClose={() => setShowAddGuest(false)} title="Tambah Tamu">
+        <Modal onClose={() => setShowAddGuest(false)} title="Tambah Tamu Baru">
           <div className="space-y-4">
-            <InputField label="Nama Tamu" value={newGuest.name} onChange={v => setNewGuest({...newGuest, name: v})} />
-            <InputField label="Grup" value={newGuest.group} onChange={v => setNewGuest({...newGuest, group: v})} />
-            <InputField label="No. WhatsApp" value={newGuest.phone} onChange={v => setNewGuest({...newGuest, phone: v})} />
-            <InputField label="No. Meja" value={newGuest.tableNumber} onChange={v => setNewGuest({...newGuest, tableNumber: v})} />
-            <button onClick={() => {
-              if (newGuest.name) { store.addGuest({ ...newGuest, status: 'pending', message: '' }); setNewGuest({ name: '', group: 'Umum', phone: '', tableNumber: '' }); setShowAddGuest(false); }
-            }} className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition">
+            <InputField label="Nama" value={newGuest.name} onChange={v => setNewGuest({...newGuest, name: v})} placeholder="Nama tamu" />
+            <InputField label="Grup" value={newGuest.group} onChange={v => setNewGuest({...newGuest, group: v})} placeholder="contoh: Keluarga, Teman, Kolega" />
+            <InputField label="No. WhatsApp" value={newGuest.phone} onChange={v => setNewGuest({...newGuest, phone: v})} placeholder="08xxxxxxxxxx" />
+            <InputField label="No. Meja" value={newGuest.tableNumber} onChange={v => setNewGuest({...newGuest, tableNumber: v})} placeholder="contoh: 1, 2, A, B" />
+            <button onClick={() => { store.addGuest(newGuest); setNewGuest({ name: '', group: 'Umum', phone: '', tableNumber: '', status: 'pending', message: '' }); setShowAddGuest(false); }}
+              className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition">
               Tambah Tamu
             </button>
           </div>
         </Modal>
       )}
+
+      {/* Bulk Add Modal */}
       {showBulkAdd && (
         <Modal onClose={() => setShowBulkAdd(false)} title="Import Tamu Massal">
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">Format: Nama, Grup, Telepon, Meja (1 baris = 1 tamu)</p>
+            <p className="text-sm text-gray-600">Format: Nama, Grup, Telepon, Meja (satu per baris)</p>
             <textarea value={bulkText} onChange={e => setBulkText(e.target.value)} rows={10}
-              className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-mono"
-              placeholder={`Budi, Keluarga, 081234567890, 5\nAni, Teman, 089876543210, 3`} />
-            <p className="text-sm text-gray-500">Total: {bulkText.split('\n').filter(l => l.trim()).length} tamu</p>
+              placeholder={`Budi Santoso, Keluarga, 081234567890, 1\nSiti Aminah, Teman, 082345678901, 2\nAhmad Fauzi, Kolega, 083456789012, 3`}
+              className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-mono" />
+            <p className="text-xs text-gray-500">{bulkText.split('\n').filter(l => l.trim()).length} tamu</p>
             <button onClick={handleBulkAdd} className="w-full py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition">
               Import {bulkText.split('\n').filter(l => l.trim()).length} Tamu
             </button>
