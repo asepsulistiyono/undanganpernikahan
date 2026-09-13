@@ -250,7 +250,7 @@ export default function Dashboard({ onLogout }: Props) {
         {/* Preview Button */}
         <div className="mb-6">
           <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold shadow-lg min-h-[48px] text-base border-2 border-amber-600">
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-black rounded-xl font-semibold shadow-lg min-h-[48px] text-base border-2 border-amber-600">
             <Globe className="w-5 h-5" /> Preview Undangan
           </a>
         </div>
@@ -286,7 +286,7 @@ export default function Dashboard({ onLogout }: Props) {
                   {saveStatus === 'idle' && <><div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif</>}
                 </div>
                 <a href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-md min-h-[44px] border-2 border-amber-600">
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-sm font-semibold shadow-md min-h-[44px] border-2 border-amber-600">
                   <Globe className="w-4 h-4" /> Preview
                 </a>
               </div>
