@@ -323,6 +323,7 @@ export default function Invitation() {
             <div className="mb-6 sm:mb-8 inline-block w-full">
               <div className="px-4 sm:px-6 py-3 sm:py-4 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}30` }}>
                 <p className="text-xs uppercase tracking-wider opacity-50 mb-1" style={{ color: theme.textColor }}>Kepada Yth.</p>
+                <p className="text-xs sm:text-sm opacity-70 mb-1" style={{ color: theme.textColor }}>Bapak/Ibu/Saudara</p>
                 <p className="text-lg sm:text-xl font-bold break-words" style={{ color: theme.primaryColor }}>{guestName}</p>
               </div>
             </div>
@@ -411,7 +412,17 @@ export default function Invitation() {
           <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 break-words" style={{ fontFamily: theme.scriptFont, color: theme.primaryColor, textShadow: `0 0 40px ${theme.primaryColor}30` }}>
             {weddingData.brideName}
           </h1>
-          {weddingData.weddingDate && <p className="text-sm opacity-50" style={{ color: theme.textColor }}>{formatDate(weddingData.weddingDate)}</p>}
+          {weddingData.weddingDate && <p className="text-sm opacity-50 mb-6" style={{ color: theme.textColor }}>{formatDate(weddingData.weddingDate)}</p>}
+
+          {guestName && (
+            <div className="mt-6 inline-block">
+              <div className="px-4 sm:px-6 py-3 rounded-2xl backdrop-blur-md border" style={{ background: theme.cardBg, borderColor: `${theme.primaryColor}30` }}>
+                <p className="text-xs uppercase tracking-wider opacity-50 mb-1" style={{ color: theme.textColor }}>Kepada Yth.</p>
+                <p className="text-xs sm:text-sm opacity-70 mb-1" style={{ color: theme.textColor }}>Bapak/Ibu/Saudara</p>
+                <p className="text-base sm:text-lg font-bold break-words" style={{ color: theme.primaryColor }}>{guestName}</p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -679,4 +690,3 @@ export default function Invitation() {
     </div>
   );
 }
-
