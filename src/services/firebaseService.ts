@@ -317,9 +317,8 @@ export function subscribeLiveStatus(
 ): Unsubscribe {
   const docRef = doc(db, 'users', username, 'live', 'data');
   return onSnapshot(docRef, (snap) => {
-    if (snap.exists()) {
-      callback(Boolean(snap.data().isLive));
-    }
+    // Kalau doc tidak ada → anggap false
+    callback(snap.exists() ? Boolean(snap.data().isLive) : false);
   });
 }
 
