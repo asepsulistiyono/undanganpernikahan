@@ -524,7 +524,7 @@ export default function Dashboard({ onLogout }: Props) {
           <div className="space-y-4">
             <InputField label="Nama" value={newGuest.name} onChange={v => setNewGuest({...newGuest, name: v})} placeholder="Nama tamu" />
             <InputField label="Grup" value={newGuest.group} onChange={v => setNewGuest({...newGuest, group: v})} placeholder="contoh: Keluarga, Teman, Kolega" />
-            <InputField label="No. WhatsApp" value={newGuest.phone} onChange={v => setNewGuest({...newGuest, phone: v})} placeholder="628xxxxxxxxxx" />
+            <InputField label="No. WhatsApp" value={newGuest.phone} onChange={v => setNewGuest({...newGuest, phone: v})} placeholder="08xxxxxxxxxxx" />
             <InputField label="No. Meja" value={newGuest.tableNumber} onChange={v => setNewGuest({...newGuest, tableNumber: v})} placeholder="contoh: 1, 2, A, B" />
             <button onClick={() => { store.addGuest(newGuest); setNewGuest({ name: '', group: 'Umum', phone: '', tableNumber: '', status: 'pending', message: '' }); setShowAddGuest(false); }}
               className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition">
