@@ -202,10 +202,9 @@ export const useStore = create<StoreState>()((set, get) => ({
 
   // Wedding data (scoped) - OPTIMIZED WITH DEBOUNCE
   getWeddingData: () => {
-  const username = get().currentUser?.username;
-  const data = get().weddingDataMap[username];
-  console.log('📖 getWeddingData dipanggil:', username, '→', data ? 'ADA' : 'KOSONG');
-  return data || DEFAULT_WEDDING_DATA;
+    const { currentUser, weddingDataMap } = get();
+    if (!currentUser) return defaultWeddingData;
+    return weddingDataMap[currentUser.username] || defaultWeddingData;
   },
 
   updateWeddingData: (data) => {
