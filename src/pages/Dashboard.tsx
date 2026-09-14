@@ -38,75 +38,68 @@ export default function Dashboard({ onLogout }: Props) {
   const guests = store.getGuests();
   const isLive = store.isLive();
 
-// ✅ PASANG KODE BARU DI SINI
 useEffect(() => {
   if (!currentUser) return;
-
   const username = currentUser.username;
+  console.log('🔥 Setup listener untuk:', username);
 
-  // Initial load
+  // ===== SEMUA DATA DIAMBIL DARI LISTENER =====
+  // onSnapshot akan fire PERTAMA KALI langsung dengan data dari server
+
+  const unsubWedding = firebaseService.subscribeWeddingData(username, (data) => {
+    console.log('📥 Wedding data diterima:', data?.groomName, '/', data?.brideName);
+    useStore.setState((state) => ({
+      weddingDataMap: { ...state.weddingDataMap, [username]: data },
+    }));
+  });
+
+  const unsubTheme = firebaseService.subscribeTheme(username, (themeId) => {
+    console.log('📥 Theme diterima:', themeId);
+    useStore.setState((state) => ({
+      themeMap: { ...state.themeMap, [username]: themeId },
+    }));
+  });
+
+  const unsubGuests = firebaseService.subscribeGuests(username, (guests) => {
+    console.log('📥 Guests diterima:', guests.length);
+    useStore.setState((state) => ({
+      guestsMap: { ...state.guestsMap, [username]: guests },
+    }));
+  });
+
+  const unsubLive = firebaseService.subscribeLiveStatus(username, (isLive) => {
+    console.log('📥 Live diterima:', isLive);
+    useStore.setState((state) => ({
+      liveMap: { ...state.liveMap, [username]: isLive },
+    }));
+  });
+
+  // ===== MIGRASI BASE64 (BACKGROUND, TIDAK BLOCK UI) =====
   (async () => {
-    const [weddingData, themeId, guests, isLive] = await Promise.all([
-      firebaseService.getWeddingData(username),
-      firebaseService.getTheme(username),
-      firebaseService.getGuests(username),
-      firebaseService.getLiveStatus(username),
-    ]);
+    try {
+      const weddingData = await firebaseService.getWeddingData(username);
+      if (!weddingData) return;
 
-    if (weddingData) {
       const hasBase64 =
         firebaseService.isBase64Image(weddingData.coverImage) ||
         firebaseService.isBase64Image(weddingData.groomPhoto) ||
         firebaseService.isBase64Image(weddingData.bridePhoto) ||
         firebaseService.isBase64Image(weddingData.couplePhoto) ||
-        (weddingData.galleryImages || []).some(img => firebaseService.isBase64Image(img));
+        (weddingData.galleryImages || []).some((img) =>
+          firebaseService.isBase64Image(img)
+        );
 
-      const finalData = hasBase64
-        ? await firebaseService.migrateImagesToStorage(username, weddingData)
-        : weddingData;
-
-      const { weddingDataMap } = useStore.getState();
-      useStore.setState({
-        weddingDataMap: { ...weddingDataMap, [username]: finalData },
-      });
+      if (hasBase64) {
+        console.log('🔄 Migrating base64 images to Storage...');
+        await firebaseService.migrateImagesToStorage(username, weddingData);
+      }
+    } catch (e) {
+      console.warn('⚠️ Migration skip:', e);
     }
-
-    if (themeId) {
-      const { themeMap } = useStore.getState();
-      useStore.setState({ themeMap: { ...themeMap, [username]: themeId } });
-    }
-
-    if (guests.length) {
-      const { guestsMap } = useStore.getState();
-      useStore.setState({ guestsMap: { ...guestsMap, [username]: guests } });
-    }
-
-    const { liveMap } = useStore.getState();
-    useStore.setState({ liveMap: { ...liveMap, [username]: isLive } });
   })();
 
-  // Real-time listeners — sinkron antar device
-  const unsubWedding = firebaseService.subscribeWeddingData(username, (data) => {
-    const { weddingDataMap } = useStore.getState();
-    useStore.setState({ weddingDataMap: { ...weddingDataMap, [username]: data } });
-  });
-
-  const unsubTheme = firebaseService.subscribeTheme(username, (themeId) => {
-    const { themeMap } = useStore.getState();
-    useStore.setState({ themeMap: { ...themeMap, [username]: themeId } });
-  });
-
-  const unsubGuests = firebaseService.subscribeGuests(username, (guests) => {
-    const { guestsMap } = useStore.getState();
-    useStore.setState({ guestsMap: { ...guestsMap, [username]: guests } });
-  });
-
-  const unsubLive = firebaseService.subscribeLiveStatus(username, (isLive) => {
-    const { liveMap } = useStore.getState();
-    useStore.setState({ liveMap: { ...liveMap, [username]: isLive } });
-  });
-
   return () => {
+    console.log('🧹 Cleanup listener untuk:', username);
     unsubWedding();
     unsubTheme();
     unsubGuests();
