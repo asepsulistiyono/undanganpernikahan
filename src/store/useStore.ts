@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import { WeddingData, Guest, AdminUser } from '../types';
 import * as firebaseService from '../services/firebaseService';
+import type { Unsubscribe } from 'firebase/firestore';
 
+// ============================================================
+// DEFAULT DATA
+// ============================================================
 const defaultWeddingData: WeddingData = {
   groomName: '',
   brideName: '',
@@ -36,75 +40,83 @@ const defaultWeddingData: WeddingData = {
   bankAccount2: '',
   bankHolder2: '',
   greeting: 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami.',
-  customFont: 'poppins'
+  customFont: 'poppins',
 };
 
-// Debounce helper
-const debounceTimers: Record<string, NodeJS.Timeout> = {};
-const debounce = (key: string, fn: () => void, delay: number = 1000) => {
-  if (debounceTimers[key]) {
-    clearTimeout(debounceTimers[key]);
-  }
+// ============================================================
+// DEBOUNCE HELPER (khusus wedding data — karena user ngetik cepat)
+// ============================================================
+const debounceTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+const debounce = (key: string, fn: () => void, delay = 800) => {
+  if (debounceTimers[key]) clearTimeout(debounceTimers[key]);
   debounceTimers[key] = setTimeout(fn, delay);
 };
 
+// ============================================================
+// LISTENER REGISTRY (agar bisa cleanup saat logout)
+// ============================================================
+let activeUnsubscribers: Unsubscribe[] = [];
+
+// ============================================================
+// STORE TYPE
+// ============================================================
 interface StoreState {
-  // Current logged in user
   currentUser: AdminUser | null;
   isAuthenticated: boolean;
-
-  // All users (managed by super-admin)
   users: AdminUser[];
 
-  // Per-user wedding data
   weddingDataMap: Record<string, WeddingData>;
   themeMap: Record<string, string>;
   guestsMap: Record<string, Guest[]>;
   liveMap: Record<string, boolean>;
 
-  // Loading state
   isLoading: boolean;
 
-  // Auth methods
+  // Auth
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 
-  // User management (super-admin only)
+  // User management
   createUser: (user: Omit<AdminUser, 'createdAt' | 'isActive'>) => Promise<boolean>;
   updateUser: (username: string, data: Partial<AdminUser>) => Promise<void>;
   deleteUser: (username: string) => Promise<void>;
   toggleUserActive: (username: string) => Promise<void>;
   resetUserPassword: (username: string, newPassword: string) => Promise<void>;
 
-  // Wedding data methods (scoped to current user)
+  // Wedding data
   getWeddingData: () => WeddingData;
   updateWeddingData: (data: Partial<WeddingData>) => void;
 
   // Theme
   getSelectedTheme: () => string;
-  setSelectedTheme: (themeId: string) => void;
+  setSelectedTheme: (themeId: string) => Promise<void>;
 
-  // Guests (scoped to current user)
+  // Guests
   getGuests: () => Guest[];
-  addGuest: (guest: Omit<Guest, 'id' | 'createdAt'>) => void;
-  addGuests: (guests: Omit<Guest, 'id' | 'createdAt'>[]) => void;
-  updateGuest: (id: string, data: Partial<Guest>) => void;
-  deleteGuest: (id: string) => void;
-  clearAllGuests: () => void;
+  addGuest: (guest: Omit<Guest, 'id' | 'createdAt'>) => Promise<void>;
+  addGuests: (guests: Omit<Guest, 'id' | 'createdAt'>[]) => Promise<void>;
+  updateGuest: (id: string, data: Partial<Guest>) => Promise<void>;
+  deleteGuest: (id: string) => Promise<void>;
+  clearAllGuests: () => Promise<void>;
 
-  // Live status
+  // Live
   isLive: () => boolean;
-  toggleLive: () => void;
+  toggleLive: () => Promise<void>;
 
-  // Get user's display name (for invitation footer)
+  // Helper
   getUserDisplayName: (username: string) => string;
 
-  // Initialize Firebase listeners
+  // Firebase listeners
   initializeFirebase: () => Promise<void>;
+  setupUserListeners: (username: string) => void;
+  cleanupUserListeners: () => void;
 }
 
+// ============================================================
+// STORE
+// ============================================================
 export const useStore = create<StoreState>()((set, get) => ({
-  // Initial state
+  // ---------- Initial state ----------
   currentUser: null,
   isAuthenticated: false,
   users: [],
@@ -114,34 +126,51 @@ export const useStore = create<StoreState>()((set, get) => ({
   liveMap: {},
   isLoading: true,
 
-  // Auth
-  login: async (username: string, password: string) => {
+  // ============================================================
+  // AUTH
+  // ============================================================
+  login: async (username, password) => {
     const { users } = get();
     const user = users.find(u => u.username === username && u.password === password);
     if (user && user.isActive) {
       set({ currentUser: user, isAuthenticated: true });
+      // 🔥 PENTING: setup listener real-time setelah login
+      get().setupUserListeners(username);
       return true;
     }
     return false;
   },
 
-  logout: () => set({ currentUser: null, isAuthenticated: false }),
+  logout: () => {
+    // 🔥 PENTING: matikan listener saat logout
+    get().cleanupUserListeners();
+    set({
+      currentUser: null,
+      isAuthenticated: false,
+      weddingDataMap: {},
+      themeMap: {},
+      guestsMap: {},
+      liveMap: {},
+    });
+  },
 
-  // User management
+  // ============================================================
+  // USER MANAGEMENT
+  // ============================================================
   createUser: async (userData) => {
     const { users } = get();
-    if (users.find(u => u.username === userData.username)) {
-      return false;
-    }
+    if (users.find(u => u.username === userData.username)) return false;
+
     const newUser: AdminUser = {
       ...userData,
       role: userData.role || 'user',
       createdAt: new Date().toISOString(),
-      isActive: true
+      isActive: true,
     };
-    
+
     try {
-      await firebaseService.addUser(newUser);
+      // ✅ FIX: nama method sesuai firebaseService
+      await firebaseService.createUser(newUser);
       return true;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -173,7 +202,7 @@ export const useStore = create<StoreState>()((set, get) => ({
         weddingDataMap: newWeddingData,
         themeMap: newTheme,
         guestsMap: newGuests,
-        liveMap: newLive
+        liveMap: newLive,
       });
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -200,7 +229,9 @@ export const useStore = create<StoreState>()((set, get) => ({
     }
   },
 
-  // Wedding data (scoped) - OPTIMIZED WITH DEBOUNCE
+  // ============================================================
+  // WEDDING DATA
+  // ============================================================
   getWeddingData: () => {
     const { currentUser, weddingDataMap } = get();
     if (!currentUser) return defaultWeddingData;
@@ -210,213 +241,250 @@ export const useStore = create<StoreState>()((set, get) => ({
   updateWeddingData: (data) => {
     const { currentUser, weddingDataMap } = get();
     if (!currentUser) return;
+
     const currentData = weddingDataMap[currentUser.username] || defaultWeddingData;
     const newData = { ...currentData, ...data };
-    
-    console.log('Updating wedding data:', { username: currentUser.username, field: Object.keys(data)[0], value: Object.values(data)[0] });
-    console.log('New data bridePhoto:', newData.bridePhoto);
-    console.log('New data groomPhoto:', newData.groomPhoto);
-    
-    // Optimistic update - update UI immediately
+
+    // 1. Optimistic update (UI langsung berubah)
     set({
       weddingDataMap: {
         ...weddingDataMap,
-        [currentUser.username]: newData
-      }
+        [currentUser.username]: newData,
+      },
     });
 
-    // Debounced save to Firebase (1 second delay)
+    // 2. Debounced save ke Firebase (biar tidak spam saat ngetik)
     debounce(`wedding-${currentUser.username}`, () => {
-      console.log('Saving to Firebase:', { username: currentUser.username, bridePhoto: newData.bridePhoto, groomPhoto: newData.groomPhoto });
-      firebaseService.saveWeddingData(currentUser.username, newData)
-        .then(() => console.log('Successfully saved to Firebase'))
-        .catch(error => console.error('Error saving wedding data:', error));
-    }, 1000);
+      firebaseService
+        .saveWeddingData(currentUser.username, newData)
+        .catch(err => console.error('Error saving wedding data:', err));
+    });
   },
 
-  // Theme (scoped) - OPTIMIZED
+  // ============================================================
+  // THEME
+  // ============================================================
   getSelectedTheme: () => {
     const { currentUser, themeMap } = get();
     if (!currentUser) return 'elegant-gold';
     return themeMap[currentUser.username] || 'elegant-gold';
   },
 
-  setSelectedTheme: (themeId) => {
+  setSelectedTheme: async (themeId) => {
     const { currentUser, themeMap } = get();
     if (!currentUser) return;
-    
-    // Optimistic update
-    set({
-      themeMap: { ...themeMap, [currentUser.username]: themeId }
-    });
 
-    // Fire and forget
-    firebaseService.saveTheme(currentUser.username, themeId)
-      .catch(error => console.error('Error saving theme:', error));
+    set({ themeMap: { ...themeMap, [currentUser.username]: themeId } });
+
+    try {
+      await firebaseService.saveTheme(currentUser.username, themeId);
+    } catch (error) {
+      console.error('Error saving theme:', error);
+    }
   },
 
-  // Guests (scoped) - OPTIMIZED
+  // ============================================================
+  // GUESTS
+  // ============================================================
   getGuests: () => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return [];
     return guestsMap[currentUser.username] || [];
   },
 
-  addGuest: (guest) => {
+  addGuest: async (guest) => {
+    const { currentUser } = get();
+    if (!currentUser) return;
+
+    try {
+      // ✅ FIX: Kirim username + JANGAN generate ID lokal.
+      // Biarkan Firebase yang generate. Listener akan update state.
+      await firebaseService.addGuest(currentUser.username, guest as any);
+    } catch (error) {
+      console.error('Error adding guest:', error);
+    }
+  },
+
+  addGuests: async (newGuests) => {
+    const { currentUser } = get();
+    if (!currentUser) return;
+
+    try {
+      await firebaseService.addGuests(currentUser.username, newGuests as any);
+    } catch (error) {
+      console.error('Error adding guests:', error);
+    }
+  },
+
+  updateGuest: async (id, data) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
-    const currentGuests = guestsMap[currentUser.username] || [];
-    const newGuest: Guest = {
-      ...guest,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString()
-    };
-    
+
     // Optimistic update
+    const currentGuests = guestsMap[currentUser.username] || [];
     set({
       guestsMap: {
         ...guestsMap,
-        [currentUser.username]: [...currentGuests, newGuest]
-      }
+        [currentUser.username]: currentGuests.map(g =>
+          g.id === id ? { ...g, ...data } : g
+        ),
+      },
     });
 
-    // Fire and forget
-    firebaseService.addGuest(currentUser.username, newGuest)
-      .catch(error => console.error('Error adding guest:', error));
+    try {
+      // ✅ FIX: Kirim username juga
+      await firebaseService.updateGuest(currentUser.username, id, data);
+    } catch (error) {
+      console.error('Error updating guest:', error);
+    }
   },
 
-  addGuests: (newGuests) => {
+  deleteGuest: async (id) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
-    const currentGuests = guestsMap[currentUser.username] || [];
-    const guestsWithIds = newGuests.map(g => ({
-      ...g,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString()
-    }));
-    
+
     // Optimistic update
+    const currentGuests = guestsMap[currentUser.username] || [];
     set({
       guestsMap: {
         ...guestsMap,
-        [currentUser.username]: [...currentGuests, ...guestsWithIds]
-      }
+        [currentUser.username]: currentGuests.filter(g => g.id !== id),
+      },
     });
 
-    // Batch save to Firebase
-    Promise.all(guestsWithIds.map(guest => 
-      firebaseService.addGuest(currentUser.username, guest)
-    )).catch(error => console.error('Error adding guests:', error));
+    try {
+      // ✅ FIX: Kirim username juga
+      await firebaseService.deleteGuest(currentUser.username, id);
+    } catch (error) {
+      console.error('Error deleting guest:', error);
+    }
   },
 
-  updateGuest: (id, data) => {
+  clearAllGuests: async () => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
-    const currentGuests = guestsMap[currentUser.username] || [];
-    
-    // Optimistic update
-    set({
-      guestsMap: {
-        ...guestsMap,
-        [currentUser.username]: currentGuests.map(g => g.id === id ? { ...g, ...data } : g)
-      }
-    });
 
-    // Fire and forget
-    firebaseService.updateGuest(id, data)
-      .catch(error => console.error('Error updating guest:', error));
+    set({ guestsMap: { ...guestsMap, [currentUser.username]: [] } });
+
+    try {
+      await firebaseService.clearAllGuests(currentUser.username);
+    } catch (error) {
+      console.error('Error clearing guests:', error);
+    }
   },
 
-  deleteGuest: (id) => {
-    const { currentUser, guestsMap } = get();
-    if (!currentUser) return;
-    const currentGuests = guestsMap[currentUser.username] || [];
-    
-    // Optimistic update
-    set({
-      guestsMap: {
-        ...guestsMap,
-        [currentUser.username]: currentGuests.filter(g => g.id !== id)
-      }
-    });
-
-    // Fire and forget
-    firebaseService.deleteGuest(id)
-      .catch(error => console.error('Error deleting guest:', error));
-  },
-
-  clearAllGuests: () => {
-    const { currentUser, guestsMap } = get();
-    if (!currentUser) return;
-    
-    // Optimistic update
-    set({
-      guestsMap: { ...guestsMap, [currentUser.username]: [] }
-    });
-
-    // Fire and forget
-    firebaseService.deleteAllGuests(currentUser.username)
-      .catch(error => console.error('Error clearing guests:', error));
-  },
-
-  // Live status (scoped) - OPTIMIZED
+  // ============================================================
+  // LIVE STATUS
+  // ============================================================
   isLive: () => {
     const { currentUser, liveMap } = get();
     if (!currentUser) return false;
     return liveMap[currentUser.username] || false;
   },
 
-  toggleLive: () => {
+  toggleLive: async () => {
     const { currentUser, liveMap } = get();
     if (!currentUser) return;
+
     const newStatus = !(liveMap[currentUser.username] || false);
-    
-    // Optimistic update
-    set({
-      liveMap: {
-        ...liveMap,
-        [currentUser.username]: newStatus
-      }
-    });
+    set({ liveMap: { ...liveMap, [currentUser.username]: newStatus } });
 
-    // Fire and forget
-    firebaseService.saveLiveStatus(currentUser.username, newStatus)
-      .catch(error => console.error('Error toggling live status:', error));
+    try {
+      await firebaseService.setLiveStatus(currentUser.username, newStatus);
+    } catch (error) {
+      console.error('Error toggling live status:', error);
+    }
   },
 
-  getUserDisplayName: (username: string) => {
+  // ============================================================
+  // HELPER
+  // ============================================================
+  getUserDisplayName: (username) => {
     const { users } = get();
-    const user = users.find(u => u.username === username);
-    return user?.displayName || username;
+    return users.find(u => u.username === username)?.displayName || username;
   },
 
-  // Initialize Firebase listeners
+  // ============================================================
+  // FIREBASE LISTENERS — INI KUNCI SINKRONISASI
+  // ============================================================
   initializeFirebase: async () => {
     try {
-      // Check if admin user exists, if not create default admin
+      // Cek admin default
       const existingUsers = await firebaseService.getUsers();
       const adminExists = existingUsers.find(u => u.username === 'admin');
-      
+
       if (!adminExists) {
-        const defaultAdmin: AdminUser = {
+        await firebaseService.createUser({
           username: 'admin',
           password: 'admin123',
           displayName: 'Super Admin',
           role: 'super-admin',
           createdAt: new Date().toISOString(),
-          isActive: true
-        };
-        await firebaseService.addUser(defaultAdmin);
-        console.log('Default admin user created');
+          isActive: true,
+        });
+        console.log('✅ Default admin created');
       }
 
-      // Listen to users changes (real-time)
+      // Listen users secara real-time
       firebaseService.onUsersChange((users) => {
         set({ users, isLoading: false });
       });
     } catch (error) {
-      console.error('Error initializing Firebase:', error);
+      console.error('❌ Error initializing Firebase:', error);
       set({ isLoading: false });
     }
-  }
+  },
+
+  /**
+   * 🔥 Setup listener untuk wedding data, theme, guests, live
+   * Dipanggil otomatis saat login.
+   */
+  setupUserListeners: (username) => {
+    console.log('🔥 Setup listener untuk:', username);
+
+    // Bersihkan listener lama dulu
+    get().cleanupUserListeners();
+
+    // Wedding data
+    const unsubWedding = firebaseService.subscribeWeddingData(username, (data) => {
+      console.log('📥 Wedding data:', data?.groomName, '/', data?.brideName);
+      set((state) => ({
+        weddingDataMap: { ...state.weddingDataMap, [username]: data },
+      }));
+    });
+
+    // Theme
+    const unsubTheme = firebaseService.subscribeTheme(username, (themeId) => {
+      console.log('📥 Theme:', themeId);
+      set((state) => ({
+        themeMap: { ...state.themeMap, [username]: themeId },
+      }));
+    });
+
+    // Guests
+    const unsubGuests = firebaseService.subscribeGuests(username, (guests) => {
+      console.log('📥 Guests:', guests.length);
+      set((state) => ({
+        guestsMap: { ...state.guestsMap, [username]: guests },
+      }));
+    });
+
+    // Live status
+    const unsubLive = firebaseService.subscribeLiveStatus(username, (isLive) => {
+      console.log('📥 Live:', isLive);
+      set((state) => ({
+        liveMap: { ...state.liveMap, [username]: isLive },
+      }));
+    });
+
+    activeUnsubscribers = [unsubWedding, unsubTheme, unsubGuests, unsubLive];
+  },
+
+  cleanupUserListeners: () => {
+    if (activeUnsubscribers.length) {
+      console.log('🧹 Cleanup listeners');
+      activeUnsubscribers.forEach((unsub) => unsub());
+      activeUnsubscribers = [];
+    }
+  },
 }));
