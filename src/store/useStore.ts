@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { WeddingData, Guest, AdminUser } from '../types';
 import * as firebaseService from '../services/firebaseService';
+import type { Unsubscribe } from 'firebase/firestore';
 
 const defaultWeddingData: WeddingData = {
   groomName: '',
@@ -36,75 +37,60 @@ const defaultWeddingData: WeddingData = {
   bankAccount2: '',
   bankHolder2: '',
   greeting: 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami.',
-  customFont: 'poppins'
+  customFont: 'poppins',
 };
 
-// Debounce helper
-const debounceTimers: Record<string, NodeJS.Timeout> = {};
-const debounce = (key: string, fn: () => void, delay: number = 1000) => {
-  if (debounceTimers[key]) {
-    clearTimeout(debounceTimers[key]);
-  }
+const debounceTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+const debounce = (key: string, fn: () => void, delay = 800) => {
+  if (debounceTimers[key]) clearTimeout(debounceTimers[key]);
   debounceTimers[key] = setTimeout(fn, delay);
 };
 
+let activeUnsubscribers: Unsubscribe[] = [];
+
 interface StoreState {
-  // Current logged in user
   currentUser: AdminUser | null;
   isAuthenticated: boolean;
-
-  // All users (managed by super-admin)
   users: AdminUser[];
-
-  // Per-user wedding data
   weddingDataMap: Record<string, WeddingData>;
   themeMap: Record<string, string>;
   guestsMap: Record<string, Guest[]>;
   liveMap: Record<string, boolean>;
-
-  // Loading state
   isLoading: boolean;
 
-  // Auth methods
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 
-  // User management (super-admin only)
   createUser: (user: Omit<AdminUser, 'createdAt' | 'isActive'>) => Promise<boolean>;
   updateUser: (username: string, data: Partial<AdminUser>) => Promise<void>;
   deleteUser: (username: string) => Promise<void>;
   toggleUserActive: (username: string) => Promise<void>;
   resetUserPassword: (username: string, newPassword: string) => Promise<void>;
 
-  // Wedding data methods (scoped to current user)
   getWeddingData: () => WeddingData;
   updateWeddingData: (data: Partial<WeddingData>) => void;
 
-  // Theme
   getSelectedTheme: () => string;
-  setSelectedTheme: (themeId: string) => void;
+  setSelectedTheme: (themeId: string) => Promise<void>;
 
-  // Guests (scoped to current user)
   getGuests: () => Guest[];
-  addGuest: (guest: Omit<Guest, 'id' | 'createdAt'>) => void;
-  addGuests: (guests: Omit<Guest, 'id' | 'createdAt'>[]) => void;
-  updateGuest: (id: string, data: Partial<Guest>) => void;
-  deleteGuest: (id: string) => void;
-  clearAllGuests: () => void;
+  addGuest: (guest: Omit<Guest, 'id' | 'createdAt'>) => Promise<void>;
+  addGuests: (guests: Omit<Guest, 'id' | 'createdAt'>[]) => Promise<void>;
+  updateGuest: (id: string, data: Partial<Guest>) => Promise<void>;
+  deleteGuest: (id: string) => Promise<void>;
+  clearAllGuests: () => Promise<void>;
 
-  // Live status
   isLive: () => boolean;
-  toggleLive: () => void;
+  toggleLive: () => Promise<void>;
 
-  // Get user's display name (for invitation footer)
   getUserDisplayName: (username: string) => string;
 
-  // Initialize Firebase listeners
   initializeFirebase: () => Promise<void>;
+  setupUserListeners: (username: string) => void;
+  cleanupUserListeners: () => void;
 }
 
 export const useStore = create<StoreState>()((set, get) => ({
-  // Initial state
   currentUser: null,
   isAuthenticated: false,
   users: [],
@@ -114,34 +100,44 @@ export const useStore = create<StoreState>()((set, get) => ({
   liveMap: {},
   isLoading: true,
 
-  // Auth
-  login: async (username: string, password: string) => {
+  login: async (username, password) => {
     const { users } = get();
-    const user = users.find(u => u.username === username && u.password === password);
+    const user = users.find(
+      u => u.username === username && u.password === password
+    );
     if (user && user.isActive) {
       set({ currentUser: user, isAuthenticated: true });
+      get().setupUserListeners(username);
       return true;
     }
     return false;
   },
 
-  logout: () => set({ currentUser: null, isAuthenticated: false }),
+  logout: () => {
+    get().cleanupUserListeners();
+    set({
+      currentUser: null,
+      isAuthenticated: false,
+      weddingDataMap: {},
+      themeMap: {},
+      guestsMap: {},
+      liveMap: {},
+    });
+  },
 
-  // User management
   createUser: async (userData) => {
     const { users } = get();
-    if (users.find(u => u.username === userData.username)) {
-      return false;
-    }
+    if (users.find(u => u.username === userData.username)) return false;
+
     const newUser: AdminUser = {
       ...userData,
       role: userData.role || 'user',
       createdAt: new Date().toISOString(),
-      isActive: true
+      isActive: true,
     };
-    
+
     try {
-      await firebaseService.addUser(newUser);
+      await firebaseService.createUser(newUser);
       return true;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -173,7 +169,7 @@ export const useStore = create<StoreState>()((set, get) => ({
         weddingDataMap: newWeddingData,
         themeMap: newTheme,
         guestsMap: newGuests,
-        liveMap: newLive
+        liveMap: newLive,
       });
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -181,26 +177,21 @@ export const useStore = create<StoreState>()((set, get) => ({
   },
 
   toggleUserActive: async (username) => {
-    const { users } = get();
-    const user = users.find(u => u.username === username);
-    if (user) {
-      try {
-        await firebaseService.updateUser(username, { isActive: !user.isActive });
-      } catch (error) {
-        console.error('Error toggling user active:', error);
-      }
+    try {
+      await firebaseService.toggleUserActive(username);
+    } catch (error) {
+      console.error('Error toggling user active:', error);
     }
   },
 
   resetUserPassword: async (username, newPassword) => {
     try {
-      await firebaseService.updateUser(username, { password: newPassword });
+      await firebaseService.resetUserPassword(username, newPassword);
     } catch (error) {
       console.error('Error resetting password:', error);
     }
   },
 
-  // Wedding data (scoped) - OPTIMIZED WITH DEBOUNCE
   getWeddingData: () => {
     const { currentUser, weddingDataMap } = get();
     if (!currentUser) return defaultWeddingData;
@@ -210,213 +201,222 @@ export const useStore = create<StoreState>()((set, get) => ({
   updateWeddingData: (data) => {
     const { currentUser, weddingDataMap } = get();
     if (!currentUser) return;
-    const currentData = weddingDataMap[currentUser.username] || defaultWeddingData;
+
+    const currentData =
+      weddingDataMap[currentUser.username] || defaultWeddingData;
     const newData = { ...currentData, ...data };
-    
-    console.log('Updating wedding data:', { username: currentUser.username, field: Object.keys(data)[0], value: Object.values(data)[0] });
-    console.log('New data bridePhoto:', newData.bridePhoto);
-    console.log('New data groomPhoto:', newData.groomPhoto);
-    
-    // Optimistic update - update UI immediately
+
     set({
       weddingDataMap: {
         ...weddingDataMap,
-        [currentUser.username]: newData
-      }
+        [currentUser.username]: newData,
+      },
     });
 
-    // Debounced save to Firebase (1 second delay)
     debounce(`wedding-${currentUser.username}`, () => {
-      console.log('Saving to Firebase:', { username: currentUser.username, bridePhoto: newData.bridePhoto, groomPhoto: newData.groomPhoto });
-      firebaseService.saveWeddingData(currentUser.username, newData)
-        .then(() => console.log('Successfully saved to Firebase'))
-        .catch(error => console.error('Error saving wedding data:', error));
-    }, 1000);
+      firebaseService
+        .saveWeddingData(currentUser.username, newData)
+        .catch(err => console.error('Error saving wedding data:', err));
+    });
   },
 
-  // Theme (scoped) - OPTIMIZED
   getSelectedTheme: () => {
     const { currentUser, themeMap } = get();
     if (!currentUser) return 'elegant-gold';
     return themeMap[currentUser.username] || 'elegant-gold';
   },
 
-  setSelectedTheme: (themeId) => {
+  setSelectedTheme: async (themeId) => {
     const { currentUser, themeMap } = get();
     if (!currentUser) return;
-    
-    // Optimistic update
-    set({
-      themeMap: { ...themeMap, [currentUser.username]: themeId }
-    });
 
-    // Fire and forget
-    firebaseService.saveTheme(currentUser.username, themeId)
-      .catch(error => console.error('Error saving theme:', error));
+    set({ themeMap: { ...themeMap, [currentUser.username]: themeId } });
+
+    try {
+      await firebaseService.saveTheme(currentUser.username, themeId);
+    } catch (error) {
+      console.error('Error saving theme:', error);
+    }
   },
 
-  // Guests (scoped) - OPTIMIZED
   getGuests: () => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return [];
     return guestsMap[currentUser.username] || [];
   },
 
-  addGuest: (guest) => {
+  addGuest: async (guest) => {
+    const { currentUser } = get();
+    if (!currentUser) return;
+
+    try {
+      await firebaseService.addGuest(currentUser.username, guest as any);
+    } catch (error) {
+      console.error('Error adding guest:', error);
+    }
+  },
+
+  addGuests: async (newGuests) => {
+    const { currentUser } = get();
+    if (!currentUser) return;
+
+    try {
+      await firebaseService.addGuests(currentUser.username, newGuests as any);
+    } catch (error) {
+      console.error('Error adding guests:', error);
+    }
+  },
+
+  updateGuest: async (id, data) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
+
     const currentGuests = guestsMap[currentUser.username] || [];
-    const newGuest: Guest = {
-      ...guest,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString()
-    };
-    
-    // Optimistic update
     set({
       guestsMap: {
         ...guestsMap,
-        [currentUser.username]: [...currentGuests, newGuest]
-      }
+        [currentUser.username]: currentGuests.map(g =>
+          g.id === id ? { ...g, ...data } : g
+        ),
+      },
     });
 
-    // Fire and forget
-    firebaseService.addGuest(currentUser.username, newGuest)
-      .catch(error => console.error('Error adding guest:', error));
+    try {
+      await firebaseService.updateGuest(currentUser.username, id, data);
+    } catch (error) {
+      console.error('Error updating guest:', error);
+    }
   },
 
-  addGuests: (newGuests) => {
+  deleteGuest: async (id) => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
+
     const currentGuests = guestsMap[currentUser.username] || [];
-    const guestsWithIds = newGuests.map(g => ({
-      ...g,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString()
-    }));
-    
-    // Optimistic update
     set({
       guestsMap: {
         ...guestsMap,
-        [currentUser.username]: [...currentGuests, ...guestsWithIds]
-      }
+        [currentUser.username]: currentGuests.filter(g => g.id !== id),
+      },
     });
 
-    // Batch save to Firebase
-    Promise.all(guestsWithIds.map(guest => 
-      firebaseService.addGuest(currentUser.username, guest)
-    )).catch(error => console.error('Error adding guests:', error));
+    try {
+      await firebaseService.deleteGuest(currentUser.username, id);
+    } catch (error) {
+      console.error('Error deleting guest:', error);
+    }
   },
 
-  updateGuest: (id, data) => {
+  clearAllGuests: async () => {
     const { currentUser, guestsMap } = get();
     if (!currentUser) return;
+
     const currentGuests = guestsMap[currentUser.username] || [];
-    
-    // Optimistic update
-    set({
-      guestsMap: {
-        ...guestsMap,
-        [currentUser.username]: currentGuests.map(g => g.id === id ? { ...g, ...data } : g)
-      }
-    });
+    set({ guestsMap: { ...guestsMap, [currentUser.username]: [] } });
 
-    // Fire and forget
-    firebaseService.updateGuest(id, data)
-      .catch(error => console.error('Error updating guest:', error));
+    try {
+      await Promise.all(
+        currentGuests.map(g =>
+          firebaseService.deleteGuest(currentUser.username, g.id)
+        )
+      );
+    } catch (error) {
+      console.error('Error clearing guests:', error);
+    }
   },
 
-  deleteGuest: (id) => {
-    const { currentUser, guestsMap } = get();
-    if (!currentUser) return;
-    const currentGuests = guestsMap[currentUser.username] || [];
-    
-    // Optimistic update
-    set({
-      guestsMap: {
-        ...guestsMap,
-        [currentUser.username]: currentGuests.filter(g => g.id !== id)
-      }
-    });
-
-    // Fire and forget
-    firebaseService.deleteGuest(id)
-      .catch(error => console.error('Error deleting guest:', error));
-  },
-
-  clearAllGuests: () => {
-    const { currentUser, guestsMap } = get();
-    if (!currentUser) return;
-    
-    // Optimistic update
-    set({
-      guestsMap: { ...guestsMap, [currentUser.username]: [] }
-    });
-
-    // Fire and forget
-    firebaseService.deleteAllGuests(currentUser.username)
-      .catch(error => console.error('Error clearing guests:', error));
-  },
-
-  // Live status (scoped) - OPTIMIZED
   isLive: () => {
     const { currentUser, liveMap } = get();
     if (!currentUser) return false;
     return liveMap[currentUser.username] || false;
   },
 
-  toggleLive: () => {
+  toggleLive: async () => {
     const { currentUser, liveMap } = get();
     if (!currentUser) return;
+
     const newStatus = !(liveMap[currentUser.username] || false);
-    
-    // Optimistic update
-    set({
-      liveMap: {
-        ...liveMap,
-        [currentUser.username]: newStatus
-      }
-    });
+    set({ liveMap: { ...liveMap, [currentUser.username]: newStatus } });
 
-    // Fire and forget
-    firebaseService.saveLiveStatus(currentUser.username, newStatus)
-      .catch(error => console.error('Error toggling live status:', error));
+    try {
+      await firebaseService.setLiveStatus(currentUser.username, newStatus);
+    } catch (error) {
+      console.error('Error toggling live status:', error);
+    }
   },
 
-  getUserDisplayName: (username: string) => {
+  getUserDisplayName: (username) => {
     const { users } = get();
-    const user = users.find(u => u.username === username);
-    return user?.displayName || username;
+    return users.find(u => u.username === username)?.displayName || username;
   },
 
-  // Initialize Firebase listeners
   initializeFirebase: async () => {
     try {
-      // Check if admin user exists, if not create default admin
-      const existingUsers = await firebaseService.getUsers();
+      const existingUsers = await firebaseService.getAllUsers();
       const adminExists = existingUsers.find(u => u.username === 'admin');
-      
+
       if (!adminExists) {
-        const defaultAdmin: AdminUser = {
+        await firebaseService.createUser({
           username: 'admin',
           password: 'admin123',
           displayName: 'Super Admin',
           role: 'super-admin',
           createdAt: new Date().toISOString(),
-          isActive: true
-        };
-        await firebaseService.addUser(defaultAdmin);
-        console.log('Default admin user created');
+          isActive: true,
+        });
+        console.log('Default admin created');
       }
 
-      // Listen to users changes (real-time)
-      firebaseService.onUsersChange((users) => {
+      firebaseService.subscribeUsers((users) => {
         set({ users, isLoading: false });
       });
     } catch (error) {
       console.error('Error initializing Firebase:', error);
       set({ isLoading: false });
     }
-  }
+  },
+
+  setupUserListeners: (username) => {
+    console.log('Setup listener untuk:', username);
+    get().cleanupUserListeners();
+
+    const unsubWedding = firebaseService.subscribeWeddingData(
+      username,
+      (data) => {
+        set((state) => ({
+          weddingDataMap: { ...state.weddingDataMap, [username]: data },
+        }));
+      }
+    );
+
+    const unsubTheme = firebaseService.subscribeTheme(username, (themeId) => {
+      set((state) => ({
+        themeMap: { ...state.themeMap, [username]: themeId },
+      }));
+    });
+
+    const unsubGuests = firebaseService.subscribeGuests(username, (guests) => {
+      set((state) => ({
+        guestsMap: { ...state.guestsMap, [username]: guests },
+      }));
+    });
+
+    const unsubLive = firebaseService.subscribeLiveStatus(
+      username,
+      (isLive) => {
+        set((state) => ({
+          liveMap: { ...state.liveMap, [username]: isLive },
+        }));
+      }
+    );
+
+    activeUnsubscribers = [unsubWedding, unsubTheme, unsubGuests, unsubLive];
+  },
+
+  cleanupUserListeners: () => {
+    if (activeUnsubscribers.length) {
+      activeUnsubscribers.forEach((unsub) => unsub());
+      activeUnsubscribers = [];
+    }
+  },
 }));
