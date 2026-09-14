@@ -192,9 +192,7 @@ export function subscribeTheme(
 ): Unsubscribe {
   const docRef = doc(db, 'users', username, 'theme', 'data');
   return onSnapshot(docRef, (snap) => {
-    if (snap.exists()) {
-      callback(snap.data().themeId as string);
-    }
+    callback(snap.exists() ? (snap.data().themeId as string) : 'elegant-gold');
   });
 }
 
