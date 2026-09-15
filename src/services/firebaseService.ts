@@ -19,6 +19,7 @@ import {
   uploadString,
   getDownloadURL,
   deleteObject,
+  listAll,
 } from 'firebase/storage';
 import { db, storage } from './firebase';
 
@@ -83,6 +84,7 @@ export interface AdminUser {
   role: 'super-admin' | 'user';
   isActive: boolean;
   createdAt?: any;
+  updatedAt?: any;
 }
 
 // ============================================================
@@ -151,9 +153,15 @@ export function subscribeTheme(
   callback: (themeId: string) => void
 ): Unsubscribe {
   const docRef = doc(db, 'users', username, 'theme', 'data');
-  return onSnapshot(docRef, (snap) => {
-    callback(snap.exists() ? (snap.data().themeId as string) : 'elegant-gold');
-  });
+  return onSnapshot(
+    docRef,
+    (snap) => {
+      callback(snap.exists() ? (snap.data().themeId as string) : 'elegant-gold');
+    },
+    (error) => {
+      console.error('subscribeTheme error:', error);
+    }
+  );
 }
 
 // ============================================================
@@ -211,10 +219,16 @@ export function subscribeGuests(
 ): Unsubscribe {
   const colRef = collection(db, 'users', username, 'guests');
   const q = query(colRef, orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snap) => {
-    const guests = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Guest[];
-    callback(guests);
-  });
+  return onSnapshot(
+    q,
+    (snap) => {
+      const guests = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Guest[];
+      callback(guests);
+    },
+    (error) => {
+      console.error('subscribeGuests error:', error);
+    }
+  );
 }
 
 // ============================================================
@@ -242,9 +256,15 @@ export function subscribeLiveStatus(
   callback: (isLive: boolean) => void
 ): Unsubscribe {
   const docRef = doc(db, 'users', username, 'live', 'data');
-  return onSnapshot(docRef, (snap) => {
-    callback(snap.exists() ? Boolean(snap.data().isLive) : false);
-  });
+  return onSnapshot(
+    docRef,
+    (snap) => {
+      callback(snap.exists() ? Boolean(snap.data().isLive) : false);
+    },
+    (error) => {
+      console.error('subscribeLiveStatus error:', error);
+    }
+  );
 }
 
 // ============================================================
@@ -329,7 +349,11 @@ export async function getAllUsers(): Promise<AdminUser[]> {
   try {
     const colRef = collection(db, 'users');
     const snap = await getDocs(colRef);
-    return snap.docs.map((d) => ({ username: d.id, ...d.data() })) as AdminUser[];
+    return snap.docs.map((d) => {
+      const data = d.data();
+      delete (data as any).username;
+      return { ...data, username: d.id } as AdminUser;
+    });
   } catch (error) {
     console.error('getAllUsers error:', error);
     return [];
@@ -340,7 +364,10 @@ export async function getUser(username: string): Promise<AdminUser | null> {
   try {
     const docRef = doc(db, 'users', username);
     const snap = await getDoc(docRef);
-    return snap.exists() ? ({ username: snap.id, ...snap.data() } as AdminUser) : null;
+    if (!snap.exists()) return null;
+    const data = snap.data();
+    delete (data as any).username;
+    return { ...data, username: snap.id } as AdminUser;
   } catch (error) {
     console.error('getUser error:', error);
     return null;
@@ -366,6 +393,7 @@ export async function createUser(user: {
       role: user.role,
       isActive: user.isActive ?? true,
       createdAt: user.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     // Init default docs
@@ -409,13 +437,27 @@ export async function toggleUserActive(username: string): Promise<void> {
 
 export async function deleteUser(username: string): Promise<void> {
   try {
+    // 1. Hapus semua guests
     const guestsRef = collection(db, 'users', username, 'guests');
     const guestsSnap = await getDocs(guestsRef);
     await Promise.all(guestsSnap.docs.map((d) => deleteDoc(d.ref)));
 
+    // 2. Hapus semua file gambar di Storage (biar tidak orphan)
+    try {
+      const folderRef = ref(storage, `users/${username}/images`);
+      const list = await listAll(folderRef);
+      await Promise.all(list.items.map((item) => deleteObject(item)));
+    } catch (storageErr) {
+      // Folder mungkin belum ada — bukan error fatal
+      console.warn('deleteUser storage warning:', storageErr);
+    }
+
+    // 3. Hapus sub-dokumen Firestore
     await deleteDoc(doc(db, 'users', username, 'weddingData', 'data'));
     await deleteDoc(doc(db, 'users', username, 'theme', 'data'));
     await deleteDoc(doc(db, 'users', username, 'live', 'data'));
+
+    // 4. Hapus dokumen user utama
     await deleteDoc(doc(db, 'users', username));
   } catch (error) {
     console.error('deleteUser error:', error);
@@ -424,10 +466,20 @@ export async function deleteUser(username: string): Promise<void> {
 
 export function subscribeUsers(callback: (users: AdminUser[]) => void): Unsubscribe {
   const colRef = collection(db, 'users');
-  return onSnapshot(colRef, (snap) => {
-    const users = snap.docs.map((d) => ({ username: d.id, ...d.data() })) as AdminUser[];
-    callback(users);
-  });
+  return onSnapshot(
+    colRef,
+    (snap) => {
+      const users = snap.docs.map((d) => {
+        const data = d.data();
+        delete (data as any).username;
+        return { ...data, username: d.id } as AdminUser;
+      });
+      callback(users);
+    },
+    (error) => {
+      console.error('subscribeUsers error:', error);
+    }
+  );
 }
 
 // ============================================================
