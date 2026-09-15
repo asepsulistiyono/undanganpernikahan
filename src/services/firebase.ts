@@ -19,3 +19,10 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 export default app;
+
+export async function saveWeddingData(username: string, data: any) {
+  console.log('💾 Saving to Firestore:', username, data);
+  const docRef = doc(db, 'users', username, 'weddingData', 'data');
+  await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  console.log('✅ Saved!');
+}
