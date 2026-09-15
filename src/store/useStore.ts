@@ -1,104 +1,34 @@
-// src/store/useStore.ts
-import { create } from 'zustand';
-import * as firebaseService from '../services/firebaseService';
+// Contoh di komponen React
+import { useStore } from '../store/useStore';
 
-export const useStore = create<Store>((set, get) => ({
-  // ... state lain
+function GuestList() {
+  const guests = useStore((s) => s.getGuests());
+  const isLoading = useStore((s) => s.isLoading);
+  const error = useStore((s) => s.error);
+  const clearError = useStore((s) => s.clearError);
+  const addGuest = useStore((s) => s.addGuest);
+  const deleteGuest = useStore((s) => s.deleteGuest);
 
-  updateWeddingData: async (data) => {
-    const username = get().currentUser?.username;
-    if (!username) return;
+  const handleAdd = async () => {
+    await addGuest({ name: 'Budi', phone: '08123' });
+  };
 
-    // 1. Update local dulu (optimistic)
-    set(state => ({
-      weddingDataMap: {
-        ...state.weddingDataMap,
-        [username]: {
-          ...state.weddingDataMap[username],
-          ...data,
-        },
-      },
-    }));
-
-    // 2. 🔥 SYNC KE FIREBASE
-    try {
-      await firebaseService.saveWeddingData(username, data);
-    } catch (e) {
-      console.error('❌ Gagal sync ke Firebase:', e);
-    }
-  },
-
-  addGuest: async (guest) => {
-    const username = get().currentUser?.username;
-    if (!username) return;
-
-    // 🔥 Simpan ke Firebase dulu
-    const guestId = await firebaseService.addGuest(username, guest);
-
-    // Update lokal dengan id dari Firebase
-    set(state => ({
-      guestsMap: {
-        ...state.guestsMap,
-        [username]: [
-          { id: guestId, ...guest, createdAt: new Date() },
-          ...(state.guestsMap[username] || []),
-        ],
-      },
-    }));
-  },
-
-  updateGuest: async (id, data) => {
-    const username = get().currentUser?.username;
-    if (!username) return;
-
-    set(state => ({
-      guestsMap: {
-        ...state.guestsMap,
-        [username]: state.guestsMap[username].map(g =>
-          g.id === id ? { ...g, ...data } : g
-        ),
-      },
-    }));
-
-    // 🔥 Sync ke Firebase
-    await firebaseService.updateGuest(username, id, data);
-  },
-
-  deleteGuest: async (id) => {
-    const username = get().currentUser?.username;
-    if (!username) return;
-
-    set(state => ({
-      guestsMap: {
-        ...state.guestsMap,
-        [username]: state.guestsMap[username].filter(g => g.id !== id),
-      },
-    }));
-
-    // 🔥 Sync ke Firebase
-    await firebaseService.deleteGuest(username, id);
-  },
-
-  toggleLive: async () => {
-    const username = get().currentUser?.username;
-    if (!username) return;
-    const newStatus = !get().isLive();
-
-    // 🔥 Sync ke Firebase
-    await firebaseService.setLiveStatus(username, newStatus);
-  },
-
-  setSelectedTheme: async (themeId) => {
-    const username = get().currentUser?.username;
-    if (!username) return;
-
-    // 🔥 Sync ke Firebase
-    await firebaseService.saveTheme(username, themeId);
-  },
-
-  addGuests: async (guests) => {
-    const username = get().currentUser?.username;
-    if (!username) return;
-    await firebaseService.addGuests(username, guests);
-  },
-}));
+  return (
+    <div>
+      {isLoading && <p>Loading...</p>}
+      {error && (
+        <div className="error">
+          {error}
+          <button onClick={clearError}>×</button>
+        </div>
+      )}
+      {guests.map((g) => (
+        <div key={g.id}>
+          {g.name}
+          <button onClick={() => deleteGuest(g.id)}>Hapus</button>
+        </div>
+      ))}
+      <button onClick={handleAdd}>Tambah Tamu</button>
+    </div>
+  );
+}
