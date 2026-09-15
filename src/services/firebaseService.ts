@@ -192,7 +192,9 @@ export function subscribeTheme(
 ): Unsubscribe {
   const docRef = doc(db, 'users', username, 'theme', 'data');
   return onSnapshot(docRef, (snap) => {
-    callback(snap.exists() ? (snap.data().themeId as string) : 'elegant-gold');
+    if (snap.exists()) {
+      callback(snap.data().themeId as string);
+    }
   });
 }
 
@@ -315,8 +317,9 @@ export function subscribeLiveStatus(
 ): Unsubscribe {
   const docRef = doc(db, 'users', username, 'live', 'data');
   return onSnapshot(docRef, (snap) => {
-    // Kalau doc tidak ada → anggap false
-    callback(snap.exists() ? Boolean(snap.data().isLive) : false);
+    if (snap.exists()) {
+      callback(Boolean(snap.data().isLive));
+    }
   });
 }
 
