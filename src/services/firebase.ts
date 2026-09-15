@@ -13,16 +13,23 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Validasi config (biar ketahuan kalau .env belum di-set)
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error(
+    '❌ Firebase config kosong! Pastikan file .env sudah dibuat di root proyek dengan prefix VITE_FIREBASE_*'
+  );
+}
+
+console.log('🔍 Firebase config:', {
+  apiKey: firebaseConfig.apiKey ? 'ADA' : '❌ KOSONG',
+  projectId: firebaseConfig.projectId ? 'ADA' : '❌ KOSONG',
+  appId: firebaseConfig.appId ? 'ADA' : '❌ KOSONG',
+});
+
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
-export default app;
 
-export async function saveWeddingData(username: string, data: any) {
-  console.log('💾 Saving to Firestore:', username, data);
-  const docRef = doc(db, 'users', username, 'weddingData', 'data');
-  await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
-  console.log('✅ Saved!');
-}
+export default app;
