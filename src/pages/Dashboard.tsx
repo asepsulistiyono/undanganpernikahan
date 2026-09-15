@@ -1,14 +1,13 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { themes } from '../themes/themes';
-import { AdminUser } from '../types';
 import ImageUpload from '../components/ImageUpload';
 import FontSelector from '../components/FontSelector';
 import * as firebaseService from '../services/firebaseService';
 import {
   LogOut, Heart, Users, Palette, Settings, Globe, Upload,
-  Plus, Trash2, Search, MessageCircle, FileText, Download, Edit3, X, Check, Copy,
-  Camera, Type, UserPlus, Shield, ShieldOff, Key, Eye, EyeOff, UserCheck, UserX
+  Plus, Trash2, Search, MessageCircle, Download, Edit3, X, Check, Copy,
+  Camera, Type, UserPlus, Shield, ShieldOff, Key, Eye, EyeOff, UserCheck
 } from 'lucide-react';
 
 interface Props {
@@ -38,83 +37,6 @@ export default function Dashboard({ onLogout }: Props) {
   const guests = store.getGuests();
   const isLive = store.isLive();
 
-  useEffect(() => {
-  if (!currentUser) return;
-
-  const username = currentUser.username;
-
-  // Initial load
-  (async () => {
-    const [weddingData, themeId, guests, isLive] = await Promise.all([
-      firebaseService.getWeddingData(username),
-      firebaseService.getTheme(username),
-      firebaseService.getGuests(username),
-      firebaseService.getLiveStatus(username),
-    ]);
-
-    if (weddingData) {
-      // Auto-migrate base64 → Storage
-      const hasBase64 =
-        firebaseService.isBase64Image(weddingData.coverImage) ||
-        firebaseService.isBase64Image(weddingData.groomPhoto) ||
-        firebaseService.isBase64Image(weddingData.bridePhoto) ||
-        firebaseService.isBase64Image(weddingData.couplePhoto) ||
-        (weddingData.galleryImages || []).some(img => firebaseService.isBase64Image(img));
-
-      const finalData = hasBase64
-        ? await firebaseService.migrateImagesToStorage(username, weddingData)
-        : weddingData;
-
-      const { weddingDataMap } = useStore.getState();
-      useStore.setState({
-        weddingDataMap: { ...weddingDataMap, [username]: finalData },
-      });
-    }
-
-    if (themeId) {
-      const { themeMap } = useStore.getState();
-      useStore.setState({ themeMap: { ...themeMap, [username]: themeId } });
-    }
-
-    if (guests.length) {
-      const { guestsMap } = useStore.getState();
-      useStore.setState({ guestsMap: { ...guestsMap, [username]: guests } });
-    }
-
-    const { liveMap } = useStore.getState();
-    useStore.setState({ liveMap: { ...liveMap, [username]: isLive } });
-  })();
-
-  // Real-time listeners — sinkron antar device
-  const unsubWedding = firebaseService.subscribeWeddingData(username, (data) => {
-    const { weddingDataMap } = useStore.getState();
-    useStore.setState({ weddingDataMap: { ...weddingDataMap, [username]: data } });
-  });
-
-  const unsubTheme = firebaseService.subscribeTheme(username, (themeId) => {
-    const { themeMap } = useStore.getState();
-    useStore.setState({ themeMap: { ...themeMap, [username]: themeId } });
-  });
-
-  const unsubGuests = firebaseService.subscribeGuests(username, (guests) => {
-    const { guestsMap } = useStore.getState();
-    useStore.setState({ guestsMap: { ...guestsMap, [username]: guests } });
-  });
-
-  const unsubLive = firebaseService.subscribeLiveStatus(username, (isLive) => {
-    const { liveMap } = useStore.getState();
-    useStore.setState({ liveMap: { ...liveMap, [username]: isLive } });
-  });
-
-  // Cleanup
-  return () => {
-    unsubWedding();
-    unsubTheme();
-    unsubGuests();
-    unsubLive();
-  };
-}, [currentUser]);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddGuest, setShowAddGuest] = useState(false);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
@@ -126,18 +48,18 @@ export default function Dashboard({ onLogout }: Props) {
     phone: '',
     tableNumber: '',
     status: 'pending',
-    message: ''
+    message: '',
   });
   const [copied, setCopied] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  const filteredGuests = guests.filter(g =>
-    g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    g.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    g.phone.includes(searchTerm)
+  const filteredGuests = guests.filter(
+    g =>
+      g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.phone.includes(searchTerm)
   );
 
-  // ✅ FIX #1: parameter `data` diberi nama
   const updateWeddingDataWithSave = (data: Partial<any>) => {
     store.updateWeddingData(data);
     setSaveStatus('saved');
@@ -161,25 +83,28 @@ export default function Dashboard({ onLogout }: Props) {
     const url = `${baseUrl}?user=${username}&to=${name}`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        setCopied(guest.id);
-        setTimeout(() => setCopied(null), 2000);
-      }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
           setCopied(guest.id);
           setTimeout(() => setCopied(null), 2000);
-        } catch (err) {
-          alert('Link: ' + url);
-        }
-        document.body.removeChild(textArea);
-      });
+        })
+        .catch(() => {
+          const textArea = document.createElement('textarea');
+          textArea.value = url;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            setCopied(guest.id);
+            setTimeout(() => setCopied(null), 2000);
+          } catch (err) {
+            alert('Link: ' + url);
+          }
+          document.body.removeChild(textArea);
+        });
     } else {
       alert('Link undangan: ' + url);
     }
@@ -195,10 +120,10 @@ export default function Dashboard({ onLogout }: Props) {
         phone: parts[2] || '',
         tableNumber: parts[3] || '',
         status: 'pending' as GuestStatus,
-        message: ''
+        message: '',
       };
     });
-    store.addGuests(newGuests);
+    store.addGuests(newGuests as any);
     setBulkText('');
     setShowBulkAdd(false);
   };
@@ -249,24 +174,15 @@ export default function Dashboard({ onLogout }: Props) {
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="font-bold text-gray-800 text-sm sm:text-base truncate font-sans">
+              <h1 className="font-bold text-gray-800 text-sm sm:text-base truncate">
                 {isSuperAdmin ? 'Super Admin' : 'Dashboard'}
               </h1>
-              <p className="text-xs text-gray-500 truncate font-sans">
+              <p className="text-xs text-gray-500 truncate">
                 {store.currentUser?.displayName}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            {isSuperAdmin && (
-              <a
-                href="#/super-admin"
-                className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition text-xs sm:text-sm min-h-[36px] font-semibold border-2 border-purple-700"
-              >
-                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Super Admin</span>
-              </a>
-            )}
             <div
               className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${
                 isLive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
@@ -287,34 +203,35 @@ export default function Dashboard({ onLogout }: Props) {
       </header>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm font-sans">
-            <p className="text-xl sm:text-2xl font-bold text-amber-600 font-sans">{guests.length}</p>
-            <p className="text-xs text-gray-500 font-sans">Total Tamu</p>
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+            <p className="text-xl sm:text-2xl font-bold text-amber-600">{guests.length}</p>
+            <p className="text-xs text-gray-500">Total Tamu</p>
           </div>
-          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm font-sans">
-            <p className="text-xl sm:text-2xl font-bold text-green-600 font-sans">
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+            <p className="text-xl sm:text-2xl font-bold text-green-600">
               {guests.filter(g => g.status === 'accepted').length}
             </p>
-            <p className="text-xs text-gray-500 font-sans">Konfirmasi Hadir</p>
+            <p className="text-xs text-gray-500">Konfirmasi Hadir</p>
           </div>
-          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm font-sans">
-            <p className="text-xl sm:text-2xl font-bold text-blue-600 font-sans">
+          <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+            <p className="text-xl sm:text-2xl font-bold text-blue-600">
               {guests.filter(g => g.phone).length}
             </p>
-            <p className="text-xs text-gray-500 font-sans">Ada No. WA</p>
+            <p className="text-xs text-gray-500">Ada No. WA</p>
           </div>
           {isSuperAdmin ? (
-            <div className="bg-white rounded-xl p-4 border shadow-sm font-sans">
-              <p className="text-2xl font-bold text-purple-600 font-sans">
+            <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+              <p className="text-xl sm:text-2xl font-bold text-purple-600">
                 {store.users.filter(u => u.role === 'user').length}
               </p>
-              <p className="text-xs text-gray-500 font-sans">Total User</p>
+              <p className="text-xs text-gray-500">Total User</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl p-4 border shadow-sm font-sans">
-              <p className="text-2xl font-bold text-purple-600 font-sans">{themes.length}</p>
-              <p className="text-xs text-gray-500 font-sans">Tema Tersedia</p>
+            <div className="bg-white rounded-xl p-3 sm:p-4 border shadow-sm">
+              <p className="text-xl sm:text-2xl font-bold text-purple-600">{themes.length}</p>
+              <p className="text-xs text-gray-500">Tema Tersedia</p>
             </div>
           )}
         </div>
@@ -324,76 +241,59 @@ export default function Dashboard({ onLogout }: Props) {
             href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-black rounded-xl font-semibold shadow-lg min-h-[48px] text-base border-2 border-amber-600"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-black rounded-xl font-semibold shadow-lg min-h-[48px] border-2 border-amber-600"
           >
             <Globe className="w-5 h-5" /> Preview Undangan
           </a>
         </div>
 
+        {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition min-h-[44px] font-sans ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition min-h-[44px] ${
                 activeTab === tab.id
                   ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25'
                   : 'bg-white text-gray-600 hover:bg-gray-100 border'
               }`}
             >
-              <tab.icon className="w-4 h-4" />{' '}
+              <tab.icon className="w-4 h-4" />
               <span className="hidden sm:inline">{tab.label}</span>
               <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
             </button>
           ))}
         </div>
 
+        {/* ===== WEDDING TAB ===== */}
         {activeTab === 'wedding' && (
           <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
                 <Heart className="w-5 h-5 text-amber-500" /> Data Mempelai & Acara
               </h2>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div
-                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all ${
-                    saveStatus === 'saving'
-                      ? 'bg-blue-100 text-blue-700'
-                      : saveStatus === 'saved'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}
-                >
-                  {saveStatus === 'saving' && (
-                    <>
-                      <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>{' '}
-                      Menyimpan...
-                    </>
-                  )}
-                  {saveStatus === 'saved' && (
-                    <>
-                      <Check className="w-3 h-3" /> Tersimpan
-                    </>
-                  )}
-                  {saveStatus === 'idle' && (
-                    <>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif
-                    </>
-                  )}
-                </div>
-                <a
-                  href={window.location.pathname + '?user=' + store.currentUser?.username + '&preview=true'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-sm font-semibold shadow-md min-h-[44px] border-2 border-amber-600"
-                >
-                  <Globe className="w-4 h-4" /> Preview
-                </a>
+              <div
+                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs font-medium ${
+                  saveStatus === 'saved'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-500'
+                }`}
+              >
+                {saveStatus === 'saved' ? (
+                  <>
+                    <Check className="w-3 h-3" /> Tersimpan
+                  </>
+                ) : (
+                  <>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div> Auto-save aktif
+                  </>
+                )}
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
               <p className="text-sm text-amber-800">
-                <strong>💡 Tips:</strong> Edit semua data pernikahan Anda di bawah ini. Perubahan akan otomatis tersimpan.
+                <strong>💡 Tips:</strong> Edit semua data pernikahan Anda. Perubahan otomatis tersimpan & sinkron.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -425,6 +325,7 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={v => updateWeddingDataWithSave({ groomParentsAddress: v })}
                 />
               </div>
+
               <div className="space-y-4 p-4 bg-pink-50 rounded-xl">
                 <h3 className="font-semibold text-pink-800">👰 Mempelai Wanita</h3>
                 <ImageUpload
@@ -453,6 +354,7 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={v => updateWeddingDataWithSave({ brideParentsAddress: v })}
                 />
               </div>
+
               <div className="space-y-4 p-4 bg-indigo-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-indigo-800 flex items-center gap-2">
                   <Camera className="w-5 h-5" /> Foto
@@ -475,10 +377,13 @@ export default function Dashboard({ onLogout }: Props) {
                   </label>
                   <GalleryUpload
                     images={weddingData.galleryImages || []}
-                    onChange={(imgs: string[]) => updateWeddingDataWithSave({ galleryImages: imgs })}
+                    onChange={(imgs: string[]) =>
+                      updateWeddingDataWithSave({ galleryImages: imgs })
+                    }
                   />
                 </div>
               </div>
+
               <div className="space-y-4 p-4 bg-green-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-green-800">💒 Akad Nikah</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -506,6 +411,7 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={v => updateWeddingDataWithSave({ weddingAddress: v })}
                 />
               </div>
+
               <div className="space-y-4 p-4 bg-purple-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-purple-800">🎉 Resepsi</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -533,6 +439,7 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={v => updateWeddingDataWithSave({ receptionAddress: v })}
                 />
               </div>
+
               <div className="space-y-4 p-4 bg-orange-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-orange-800">📖 Kutipan & Cerita</h3>
                 <InputField
@@ -559,6 +466,7 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={v => updateWeddingDataWithSave({ greeting: v })}
                 />
               </div>
+
               <div className="space-y-4 p-4 bg-cyan-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-cyan-800">🗺️ Peta & Musik</h3>
                 <InputField
@@ -572,6 +480,7 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={v => updateWeddingDataWithSave({ musicUrl: v })}
                 />
               </div>
+
               <div className="space-y-4 p-4 bg-rose-50 rounded-xl md:col-span-2">
                 <h3 className="font-semibold text-rose-800">💝 Amplop Digital</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -611,10 +520,11 @@ export default function Dashboard({ onLogout }: Props) {
           </div>
         )}
 
+        {/* ===== GUESTS TAB ===== */}
         {activeTab === 'guests' && (
           <div className="bg-white rounded-2xl p-6 shadow-sm border">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <Users className="w-5 h-5 text-amber-500" /> Daftar Tamu ({guests.length})
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -704,7 +614,11 @@ export default function Dashboard({ onLogout }: Props) {
                         className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg"
                         title="Copy Link WA"
                       >
-                        {copied === guest.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copied === guest.id ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
                       </button>
                     )}
                     <button
@@ -736,10 +650,11 @@ export default function Dashboard({ onLogout }: Props) {
           </div>
         )}
 
+        {/* ===== THEMES TAB ===== */}
         {activeTab === 'themes' && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Palette className="w-5 h-5 text-amber-500" /> Pilih Tema ({themes.length})
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -773,7 +688,7 @@ export default function Dashboard({ onLogout }: Props) {
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Type className="w-5 h-5 text-amber-500" /> Pilih Font
               </h2>
               <FontSelector
@@ -785,10 +700,11 @@ export default function Dashboard({ onLogout }: Props) {
           </div>
         )}
 
+        {/* ===== SETTINGS TAB ===== */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 font-sans">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-amber-500" /> Pengaturan Akun
               </h2>
               <div className="space-y-4">
@@ -802,7 +718,9 @@ export default function Dashboard({ onLogout }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Display Name
+                  </label>
                   <input
                     type="text"
                     value={store.currentUser?.displayName || ''}
@@ -814,7 +732,7 @@ export default function Dashboard({ onLogout }: Props) {
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 font-sans">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Globe className="w-5 h-5 text-amber-500" /> Status Website
               </h2>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -823,7 +741,9 @@ export default function Dashboard({ onLogout }: Props) {
                     Undangan {isLive ? 'Aktif' : 'Nonaktif'}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {isLive ? 'Undangan dapat diakses oleh tamu' : 'Undangan tidak dapat diakses'}
+                    {isLive
+                      ? 'Undangan dapat diakses oleh tamu'
+                      : 'Undangan tidak dapat diakses'}
                   </p>
                 </div>
                 <button
@@ -853,9 +773,11 @@ export default function Dashboard({ onLogout }: Props) {
           </div>
         )}
 
+        {/* ===== USERS TAB ===== */}
         {activeTab === 'users' && isSuperAdmin && <UserManagement />}
       </div>
 
+      {/* Modals */}
       {showAddGuest && (
         <Modal onClose={() => setShowAddGuest(false)} title="Tambah Tamu Baru">
           <div className="space-y-4">
@@ -892,7 +814,7 @@ export default function Dashboard({ onLogout }: Props) {
                   phone: '',
                   tableNumber: '',
                   status: 'pending',
-                  message: ''
+                  message: '',
                 });
                 setShowAddGuest(false);
               }}
@@ -907,7 +829,9 @@ export default function Dashboard({ onLogout }: Props) {
       {showBulkAdd && (
         <Modal onClose={() => setShowBulkAdd(false)} title="Import Tamu Massal">
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">Format: Nama, Grup, Telepon, Meja (satu per baris)</p>
+            <p className="text-sm text-gray-600">
+              Format: Nama, Grup, Telepon, Meja (satu per baris)
+            </p>
             <textarea
               value={bulkText}
               onChange={e => setBulkText(e.target.value)}
@@ -942,6 +866,9 @@ export default function Dashboard({ onLogout }: Props) {
   );
 }
 
+// ============================================================
+// USER MANAGEMENT COMPONENT
+// ============================================================
 function UserManagement() {
   const store = useStore();
   const [showCreate, setShowCreate] = useState(false);
@@ -973,13 +900,14 @@ function UserManagement() {
       setError('Password minimal 4 karakter');
       return;
     }
-    const success = store.createUser({ ...newUser, role: 'user' });
-    if (!success) {
-      setError('Username sudah digunakan');
-      return;
-    }
-    setNewUser({ username: '', password: '', displayName: '' });
-    setShowCreate(false);
+    store.createUser({ ...newUser, role: 'user' }).then(success => {
+      if (!success) {
+        setError('Username sudah digunakan');
+        return;
+      }
+      setNewUser({ username: '', password: '', displayName: '' });
+      setShowCreate(false);
+    });
   };
 
   const handleResetPassword = () => {
@@ -1002,12 +930,13 @@ function UserManagement() {
       <div className="bg-white rounded-2xl p-6 shadow-sm border">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 font-sans">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-amber-500" /> Kelola User
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Total: {store.users.length} user ({store.users.filter(u => u.role === 'user').length} user
-              biasa, 1 super admin)
+              Total: {store.users.length} user (
+              {store.users.filter(u => u.role === 'user').length} user biasa,{' '}
+              {store.users.filter(u => u.role === 'super-admin').length} super admin)
             </p>
           </div>
           <button
@@ -1034,7 +963,9 @@ function UserManagement() {
             <div
               key={user.username}
               className={`flex items-center gap-3 p-4 rounded-xl border transition ${
-                user.isActive ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-200 opacity-60'
+                user.isActive
+                  ? 'bg-white border-gray-200'
+                  : 'bg-gray-50 border-gray-200 opacity-60'
               }`}
             >
               <div
@@ -1053,7 +984,7 @@ function UserManagement() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-gray-800">{user.displayName}</p>
                   {user.role === 'super-admin' && (
                     <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
@@ -1066,7 +997,7 @@ function UserManagement() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                   <span>@{user.username}</span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
@@ -1085,7 +1016,9 @@ function UserManagement() {
                     )}
                   </span>
                   <span>•</span>
-                  <span>Dibuat: {new Date(user.createdAt).toLocaleDateString('id-ID')}</span>
+                  <span>
+                    Dibuat: {new Date(user.createdAt).toLocaleDateString('id-ID')}
+                  </span>
                 </div>
               </div>
               {user.role !== 'super-admin' && (
@@ -1096,7 +1029,7 @@ function UserManagement() {
                       setNewUser({
                         username: user.username,
                         password: '',
-                        displayName: user.displayName
+                        displayName: user.displayName,
                       });
                     }}
                     className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
@@ -1132,7 +1065,11 @@ function UserManagement() {
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm(`Hapus user "${user.displayName}"? Semua data undangan akan terhapus.`))
+                      if (
+                        confirm(
+                          `Hapus user "${user.displayName}"? Semua data undangan akan terhapus.`
+                        )
+                      )
                         store.deleteUser(user.username);
                     }}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
@@ -1164,7 +1101,9 @@ function UserManagement() {
             <InputField
               label="Username"
               value={newUser.username}
-              onChange={v => setNewUser({ ...newUser, username: v.toLowerCase().replace(/\s/g, '') })}
+              onChange={v =>
+                setNewUser({ ...newUser, username: v.toLowerCase().replace(/\s/g, '') })
+              }
               placeholder="contoh: budi_santoso"
             />
             <InputField
@@ -1249,13 +1188,17 @@ function UserManagement() {
   );
 }
 
+// ============================================================
+// SHARED COMPONENTS
+// ============================================================
+
 function InputField({
   label,
   value,
   onChange,
   type = 'text',
   placeholder,
-  disabled
+  disabled,
 }: {
   label: string;
   value: string;
@@ -1265,15 +1208,15 @@ function InputField({
   disabled?: boolean;
 }) {
   return (
-    <div className="font-sans">
-      <label className="block text-sm font-medium text-gray-700 mb-1 font-sans">{label}</label>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       {type === 'textarea' ? (
         <textarea
           value={value}
           onChange={e => onChange?.(e.target.value)}
           rows={3}
           disabled={disabled}
-          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100 font-sans"
+          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100"
         />
       ) : (
         <input
@@ -1282,7 +1225,7 @@ function InputField({
           onChange={e => onChange?.(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100 font-sans"
+          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100"
         />
       )}
     </div>
@@ -1292,7 +1235,7 @@ function InputField({
 function Modal({
   children,
   onClose,
-  title
+  title,
 }: {
   children: React.ReactNode;
   onClose: () => void;
@@ -1300,15 +1243,15 @@ function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-sans"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto font-sans"
+        className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-gray-800 font-sans">{title}</h3>
+          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -1319,11 +1262,10 @@ function Modal({
   );
 }
 
-// ✅ FIX #3 & #5: type signature diperbaiki + cast status di select
 function EditGuestModal({
   guest,
   onClose,
-  onSave
+  onSave,
 }: {
   guest: any;
   onClose: () => void;
@@ -1349,7 +1291,7 @@ function EditGuestModal({
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
             value={data.status}
-            onChange={e => setData({ ...data, status: e.target.value as GuestStatus })}
+            onChange={e => setData({ ...data, status: e.target.value })}
             className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
           >
             <option value="pending">Pending</option>
@@ -1370,15 +1312,15 @@ function EditGuestModal({
 
 function GalleryUpload({
   images,
-  onChange
+  onChange,
 }: {
   images: string[];
   onChange: (images: string[]) => void;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const store = useStore();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
-  const store = useStore();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -1395,14 +1337,12 @@ function GalleryUpload({
       try {
         setUploadProgress(`Uploading ${i + 1}/${files.length}...`);
 
-        // Convert to base64
         const reader = new FileReader();
         const base64 = await new Promise<string>(resolve => {
           reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(file);
         });
 
-        // Upload to Firebase Storage
         const imageUrl = await firebaseService.uploadImage(base64, username, `gallery_${i}`);
         newImages.push(imageUrl);
       } catch (error) {
@@ -1477,3 +1417,6 @@ function GalleryUpload({
     </div>
   );
 }
+
+// Import React untuk GalleryUpload
+import React from 'react';
