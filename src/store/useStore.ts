@@ -1,34 +1,13 @@
-// Contoh di komponen React
-import { useStore } from '../store/useStore';
+console.log('🔍 Firebase config:', {
+  apiKey: firebaseConfig.apiKey ? 'ADA' : '❌ KOSONG',
+  projectId: firebaseConfig.projectId ? 'ADA' : '❌ KOSONG',
+  appId: firebaseConfig.appId ? 'ADA' : '❌ KOSONG',
+});
 
-function GuestList() {
-  const guests = useStore((s) => s.getGuests());
-  const isLoading = useStore((s) => s.isLoading);
-  const error = useStore((s) => s.error);
-  const clearError = useStore((s) => s.clearError);
-  const addGuest = useStore((s) => s.addGuest);
-  const deleteGuest = useStore((s) => s.deleteGuest);
+const app = initializeApp(firebaseConfig);
 
-  const handleAdd = async () => {
-    await addGuest({ name: 'Budi', phone: '08123' });
-  };
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export const auth = getAuth(app);
 
-  return (
-    <div>
-      {isLoading && <p>Loading...</p>}
-      {error && (
-        <div className="error">
-          {error}
-          <button onClick={clearError}>×</button>
-        </div>
-      )}
-      {guests.map((g) => (
-        <div key={g.id}>
-          {g.name}
-          <button onClick={() => deleteGuest(g.id)}>Hapus</button>
-        </div>
-      ))}
-      <button onClick={handleAdd}>Tambah Tamu</button>
-    </div>
-  );
-}
+export default app;  
