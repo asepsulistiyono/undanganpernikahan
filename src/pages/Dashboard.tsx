@@ -794,3 +794,626 @@ export default function Dashboard({ onLogout }: Props) {
               placeholder="contoh: Keluarga, Teman, Kolega"
             />
             <InputField
+              label="No. WhatsApp"
+              value={newGuest.phone}
+              onChange={v => setNewGuest({ ...newGuest, phone: v })}
+              placeholder="08xxxxxxxxxx"
+            />
+            <InputField
+              label="No. Meja"
+              value={newGuest.tableNumber}
+              onChange={v => setNewGuest({ ...newGuest, tableNumber: v })}
+              placeholder="contoh: 1, 2, A, B"
+            />
+            <button
+              onClick={() => {
+                store.addGuest(newGuest);
+                setNewGuest({
+                  name: '',
+                  group: 'Umum',
+                  phone: '',
+                  tableNumber: '',
+                  status: 'pending',
+                  message: '',
+                });
+                setShowAddGuest(false);
+              }}
+              className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition"
+            >
+              Tambah Tamu
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {showBulkAdd && (
+        <Modal onClose={() => setShowBulkAdd(false)} title="Import Tamu Massal">
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Format: Nama, Grup, Telepon, Meja (satu per baris)
+            </p>
+            <textarea
+              value={bulkText}
+              onChange={e => setBulkText(e.target.value)}
+              rows={10}
+              placeholder={`Budi Santoso, Keluarga, 081234567890, 1\nSiti Aminah, Teman, 082345678901, 2\nAhmad Fauzi, Kolega, 083456789012, 3`}
+              className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-mono"
+            />
+            <p className="text-xs text-gray-500">
+              {bulkText.split('\n').filter(l => l.trim()).length} tamu
+            </p>
+            <button
+              onClick={handleBulkAdd}
+              className="w-full py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition"
+            >
+              Import {bulkText.split('\n').filter(l => l.trim()).length} Tamu
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {editingGuest && (
+        <EditGuestModal
+          guest={guests.find(g => g.id === editingGuest)!}
+          onClose={() => setEditingGuest(null)}
+          onSave={(data: any) => {
+            store.updateGuest(editingGuest, data);
+            setEditingGuest(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// USER MANAGEMENT COMPONENT
+// ============================================================
+function UserManagement() {
+  const store = useStore();
+  const [showCreate, setShowCreate] = useState(false);
+  const [searchUser, setSearchUser] = useState('');
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<string | null>(null);
+  const [newUser, setNewUser] = useState({ username: '', password: '', displayName: '' });
+  const [newPassword, setNewPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+
+  const filteredUsers = store.users.filter(
+    u =>
+      u.username.toLowerCase().includes(searchUser.toLowerCase()) ||
+      u.displayName.toLowerCase().includes(searchUser.toLowerCase())
+  );
+
+  const handleCreate = () => {
+    setError('');
+    if (!newUser.username || !newUser.password || !newUser.displayName) {
+      setError('Semua field harus diisi');
+      return;
+    }
+    if (newUser.username.length < 3) {
+      setError('Username minimal 3 karakter');
+      return;
+    }
+    if (newUser.password.length < 4) {
+      setError('Password minimal 4 karakter');
+      return;
+    }
+    store.createUser({ ...newUser, role: 'user' }).then(success => {
+      if (!success) {
+        setError('Username sudah digunakan');
+        return;
+      }
+      setNewUser({ username: '', password: '', displayName: '' });
+      setShowCreate(false);
+    });
+  };
+
+  const handleResetPassword = () => {
+    if (!resetPasswordUser || newPassword.length < 4) {
+      setError('Password minimal 4 karakter');
+      return;
+    }
+    store.resetUserPassword(resetPasswordUser, newPassword);
+    setResetPasswordUser(null);
+    setNewPassword('');
+    setError('');
+  };
+
+  const togglePasswordVisibility = (username: string) => {
+    setShowPasswords(prev => ({ ...prev, [username]: !prev[username] }));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-amber-500" /> Kelola User
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Total: {store.users.length} user (
+              {store.users.filter(u => u.role === 'user').length} user biasa,{' '}
+              {store.users.filter(u => u.role === 'super-admin').length} super admin)
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm"
+          >
+            <UserPlus className="w-4 h-4" /> Tambah User
+          </button>
+        </div>
+
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            value={searchUser}
+            onChange={e => setSearchUser(e.target.value)}
+            placeholder="Cari user..."
+            className="w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
+        <div className="space-y-2 max-h-[600px] overflow-y-auto">
+          {filteredUsers.map(user => (
+            <div
+              key={user.username}
+              className={`flex items-center gap-3 p-4 rounded-xl border transition ${
+                user.isActive
+                  ? 'bg-white border-gray-200'
+                  : 'bg-gray-50 border-gray-200 opacity-60'
+              }`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  user.role === 'super-admin'
+                    ? 'bg-gradient-to-br from-purple-500 to-purple-700'
+                    : 'bg-gradient-to-br from-amber-400 to-amber-600'
+                }`}
+              >
+                {user.role === 'super-admin' ? (
+                  <Shield className="w-5 h-5 text-white" />
+                ) : (
+                  <span className="text-white font-bold text-sm">
+                    {user.displayName.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-gray-800">{user.displayName}</p>
+                  {user.role === 'super-admin' && (
+                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                      Super Admin
+                    </span>
+                  )}
+                  {!user.isActive && (
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                      Nonaktif
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                  <span>@{user.username}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    {showPasswords[user.username] ? user.password : '••••••'}
+                    {user.role !== 'super-admin' && (
+                      <button
+                        onClick={() => togglePasswordVisibility(user.username)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        {showPasswords[user.username] ? (
+                          <EyeOff className="w-3 h-3" />
+                        ) : (
+                          <Eye className="w-3 h-3" />
+                        )}
+                      </button>
+                    )}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Dibuat: {new Date(user.createdAt).toLocaleDateString('id-ID')}
+                  </span>
+                </div>
+              </div>
+              {user.role !== 'super-admin' && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      setEditingUser(user.username);
+                      setNewUser({
+                        username: user.username,
+                        password: '',
+                        displayName: user.displayName,
+                      });
+                    }}
+                    className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
+                    title="Edit"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setResetPasswordUser(user.username);
+                      setNewPassword('');
+                      setError('');
+                    }}
+                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                    title="Reset Password"
+                  >
+                    <Key className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => store.toggleUserActive(user.username)}
+                    className={`p-2 rounded-lg ${
+                      user.isActive
+                        ? 'text-orange-500 hover:bg-orange-50'
+                        : 'text-green-500 hover:bg-green-50'
+                    }`}
+                    title={user.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                  >
+                    {user.isActive ? (
+                      <ShieldOff className="w-4 h-4" />
+                    ) : (
+                      <Shield className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `Hapus user "${user.displayName}"? Semua data undangan akan terhapus.`
+                        )
+                      )
+                        store.deleteUser(user.username);
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                    title="Hapus"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showCreate && (
+        <Modal
+          onClose={() => {
+            setShowCreate(false);
+            setError('');
+          }}
+          title="Tambah User Baru"
+        >
+          <div className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+            <InputField
+              label="Username"
+              value={newUser.username}
+              onChange={v =>
+                setNewUser({ ...newUser, username: v.toLowerCase().replace(/\s/g, '') })
+              }
+              placeholder="contoh: budi_santoso"
+            />
+            <InputField
+              label="Display Name"
+              value={newUser.displayName}
+              onChange={v => setNewUser({ ...newUser, displayName: v })}
+              placeholder="contoh: Budi Santoso"
+            />
+            <InputField
+              label="Password"
+              type="password"
+              value={newUser.password}
+              onChange={v => setNewUser({ ...newUser, password: v })}
+              placeholder="Minimal 4 karakter"
+            />
+            <button
+              onClick={handleCreate}
+              className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition"
+            >
+              Buat User
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {editingUser && (
+        <Modal onClose={() => setEditingUser(null)} title="Edit User">
+          <div className="space-y-4">
+            <InputField label="Username" value={newUser.username} disabled />
+            <InputField
+              label="Display Name"
+              value={newUser.displayName}
+              onChange={v => setNewUser({ ...newUser, displayName: v })}
+            />
+            <button
+              onClick={() => {
+                store.updateUser(editingUser, { displayName: newUser.displayName });
+                setEditingUser(null);
+              }}
+              className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition"
+            >
+              Simpan
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {resetPasswordUser && (
+        <Modal
+          onClose={() => {
+            setResetPasswordUser(null);
+            setError('');
+          }}
+          title="Reset Password"
+        >
+          <div className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+            <p className="text-sm text-gray-500">
+              Reset password untuk user: <strong>@{resetPasswordUser}</strong>
+            </p>
+            <InputField
+              label="Password Baru"
+              type="password"
+              value={newPassword}
+              onChange={v => setNewPassword(v)}
+              placeholder="Minimal 4 karakter"
+            />
+            <button
+              onClick={handleResetPassword}
+              className="w-full py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition"
+            >
+              Reset Password
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// SHARED COMPONENTS
+// ============================================================
+
+function InputField({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange?: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      {type === 'textarea' ? (
+        <textarea
+          value={value}
+          onChange={e => onChange?.(e.target.value)}
+          rows={3}
+          disabled={disabled}
+          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100"
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={e => onChange?.(e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm disabled:bg-gray-100"
+        />
+      )}
+    </div>
+  );
+}
+
+function Modal({
+  children,
+  onClose,
+  title,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  title: string;
+}) {
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function EditGuestModal({
+  guest,
+  onClose,
+  onSave,
+}: {
+  guest: any;
+  onClose: () => void;
+  onSave: (data: any) => void;
+}) {
+  const [data, setData] = useState({ ...guest });
+  return (
+    <Modal onClose={onClose} title="Edit Tamu">
+      <div className="space-y-4">
+        <InputField label="Nama" value={data.name} onChange={v => setData({ ...data, name: v })} />
+        <InputField label="Grup" value={data.group} onChange={v => setData({ ...data, group: v })} />
+        <InputField
+          label="No. WhatsApp"
+          value={data.phone}
+          onChange={v => setData({ ...data, phone: v })}
+        />
+        <InputField
+          label="No. Meja"
+          value={data.tableNumber}
+          onChange={v => setData({ ...data, tableNumber: v })}
+        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            value={data.status}
+            onChange={e => setData({ ...data, status: e.target.value })}
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+          >
+            <option value="pending">Pending</option>
+            <option value="accepted">Diterima</option>
+            <option value="declined">Ditolak</option>
+          </select>
+        </div>
+        <button
+          onClick={() => onSave(data)}
+          className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition"
+        >
+          Simpan
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function GalleryUpload({
+  images,
+  onChange,
+}: {
+  images: string[];
+  onChange: (images: string[]) => void;
+}) {
+  const store = useStore();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    const newImages: string[] = [];
+    const username = store.currentUser?.username || 'unknown';
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type.startsWith('image/')) continue;
+
+      try {
+        setUploadProgress(`Uploading ${i + 1}/${files.length}...`);
+
+        const reader = new FileReader();
+        const base64 = await new Promise<string>(resolve => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+
+        const imageUrl = await firebaseService.uploadImage(base64, username, `gallery_${i}`);
+        newImages.push(imageUrl);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        alert(`Gagal upload gambar: ${file.name}`);
+      }
+    }
+
+    if (newImages.length > 0) {
+      onChange([...images, ...newImages]);
+    }
+
+    setIsUploading(false);
+    setUploadProgress('');
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemove = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    onChange(newImages);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {images.map((img, index) => (
+          <div
+            key={index}
+            className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200"
+          >
+            <img src={img} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover" />
+            <button
+              onClick={() => handleRemove(index)}
+              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50 flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50"
+        >
+          {isUploading ? (
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-gray-500">{uploadProgress}</span>
+            </div>
+          ) : (
+            <>
+              <Plus className="w-8 h-8 text-gray-400" />
+              <span className="text-xs text-gray-500">Tambah Foto</span>
+            </>
+          )}
+        </button>
+      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <p className="text-xs text-gray-500">
+        {images.length} foto tersimpan • Klik "+" untuk menambah foto baru
+      </p>
+    </div>
+  );
+}
