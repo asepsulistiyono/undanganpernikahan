@@ -2,9 +2,9 @@ import { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { AdminUser } from '../types';
 import {
-  LogOut, Users, Search, Plus, Trash2, Edit3, Check, X, Shield, ShieldOff,
-  Key, Download, Upload, BarChart3, Activity, UserCheck, UserX, Copy,
-  ChevronLeft, ChevronRight, Filter, RefreshCw, Eye, EyeOff
+  LogOut, Users, Search, Plus, Trash2, Edit3, Check, X, Shield,
+  Key, Download, Upload, BarChart3, UserCheck, UserX, Copy,
+  ChevronLeft, ChevronRight, Eye, EyeOff
 } from 'lucide-react';
 
 interface Props {
@@ -39,7 +39,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
     username: '',
     password: '',
     displayName: '',
-    role: 'user'
+    role: 'user',
   });
   const [resetPassword, setResetPassword] = useState('');
   const [bulkImportText, setBulkImportText] = useState('');
@@ -50,11 +50,13 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   // Filtered and paginated users
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || 
-                           (statusFilter === 'active' && user.isActive) ||
-                           (statusFilter === 'inactive' && !user.isActive);
+      const matchesSearch =
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && user.isActive) ||
+        (statusFilter === 'inactive' && !user.isActive);
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
       return matchesSearch && matchesStatus && matchesRole;
     });
@@ -68,13 +70,16 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   // Statistics
-  const stats = useMemo(() => ({
-    total: users.length,
-    active: users.filter(u => u.isActive).length,
-    inactive: users.filter(u => !u.isActive).length,
-    superAdmins: users.filter(u => u.role === 'super-admin').length,
-    regularUsers: users.filter(u => u.role === 'user').length
-  }), [users]);
+  const stats = useMemo(
+    () => ({
+      total: users.length,
+      active: users.filter(u => u.isActive).length,
+      inactive: users.filter(u => !u.isActive).length,
+      superAdmins: users.filter(u => u.role === 'super-admin').length,
+      regularUsers: users.filter(u => u.role === 'user').length,
+    }),
+    [users]
+  );
 
   // Handlers
   const handleAddUser = async () => {
@@ -88,7 +93,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
         username: newUser.username,
         password: newUser.password,
         displayName: newUser.displayName,
-        role: newUser.role
+        role: newUser.role,
       });
       if (success) {
         setNewUser({ username: '', password: '', displayName: '', role: 'user' });
@@ -99,78 +104,76 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
       }
     } catch (error) {
       console.error('Error adding user:', error);
-      alert('Terjadi kesalahan saat menambahkan user: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      alert(
+        'Terjadi kesalahan saat menambahkan user: ' +
+          (error instanceof Error ? error.message : 'Unknown error')
+      );
     }
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (!editingUser) return;
     const { updateUser } = useStore.getState();
-    updateUser(editingUser.username, {
+    await updateUser(editingUser.username, {
       displayName: editingUser.displayName,
-      role: editingUser.role
+      role: editingUser.role,
     });
     setShowEditModal(false);
     setEditingUser(null);
   };
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (!resetPasswordUser || !resetPassword) return;
     const { resetUserPassword } = useStore.getState();
-    resetUserPassword(resetPasswordUser.username, resetPassword);
+    await resetUserPassword(resetPasswordUser.username, resetPassword);
     setResetPassword('');
     setShowResetPasswordModal(false);
     setResetPasswordUser(null);
   };
 
-  const handleChangeMyPassword = () => {
+  const handleChangeMyPassword = async () => {
     const { currentUser } = useStore.getState();
     if (!currentUser) return;
 
-    // Validasi password lama
     if (myOldPassword !== currentUser.password) {
       alert('Password lama salah!');
       return;
     }
 
-    // Validasi password baru
     if (!myNewPassword || myNewPassword.length < 6) {
       alert('Password baru minimal 6 karakter!');
       return;
     }
 
-    // Validasi konfirmasi password
     if (myNewPassword !== myConfirmPassword) {
       alert('Konfirmasi password tidak cocok!');
       return;
     }
 
-    // Update password
     const { resetUserPassword } = useStore.getState();
-    resetUserPassword(currentUser.username, myNewPassword);
-    
-    // Reset form
+    await resetUserPassword(currentUser.username, myNewPassword);
+
     setMyOldPassword('');
     setMyNewPassword('');
     setMyConfirmPassword('');
     setShowChangeMyPasswordModal(false);
-    
+
     alert('Password berhasil diubah!');
   };
 
-  const handleToggleActive = (username: string) => {
+  const handleToggleActive = async (username: string) => {
     const { toggleUserActive } = useStore.getState();
-    toggleUserActive(username);
+    await toggleUserActive(username);
   };
 
-  const handleDeleteUser = (username: string) => {
+  const handleDeleteUser = async (username: string) => {
     if (username === 'admin') {
       alert('Tidak dapat menghapus super admin utama');
       return;
     }
     if (confirm(`Hapus user "${username}"? Semua data undangan akan dihapus.`)) {
       const { deleteUser } = useStore.getState();
-      deleteUser(username);
+      await deleteUser(username);
     }
   };
 
@@ -192,7 +195,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
     }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     const selected = Array.from(selectedUsers);
     if (selected.includes('admin')) {
       alert('Tidak dapat menghapus super admin utama');
@@ -200,30 +203,34 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
     }
     if (confirm(`Hapus ${selected.length} user yang dipilih?`)) {
       const { deleteUser } = useStore.getState();
-      selected.forEach(username => deleteUser(username));
+      await Promise.all(selected.map(username => deleteUser(username)));
       setSelectedUsers(new Set());
     }
   };
 
-  const handleBulkActivate = () => {
+  const handleBulkActivate = async () => {
     const { toggleUserActive } = useStore.getState();
-    Array.from(selectedUsers).forEach(username => {
-      const user = users.find(u => u.username === username);
-      if (user && !user.isActive) {
-        toggleUserActive(username);
-      }
-    });
+    await Promise.all(
+      Array.from(selectedUsers).map(async username => {
+        const user = users.find(u => u.username === username);
+        if (user && !user.isActive) {
+          await toggleUserActive(username);
+        }
+      })
+    );
     setSelectedUsers(new Set());
   };
 
-  const handleBulkDeactivate = () => {
+  const handleBulkDeactivate = async () => {
     const { toggleUserActive } = useStore.getState();
-    Array.from(selectedUsers).forEach(username => {
-      const user = users.find(u => u.username === username);
-      if (user && user.isActive) {
-        toggleUserActive(username);
-      }
-    });
+    await Promise.all(
+      Array.from(selectedUsers).map(async username => {
+        const user = users.find(u => u.username === username);
+        if (user && user.isActive) {
+          await toggleUserActive(username);
+        }
+      })
+    );
     setSelectedUsers(new Set());
   };
 
@@ -240,7 +247,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
           username: parts[0],
           password: parts[1],
           displayName: parts[2],
-          role: 'user'
+          role: 'user',
         });
         if (success) successCount++;
         else failCount++;
@@ -255,7 +262,11 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   const handleExportUsers = () => {
     const csv = ['Username,Password,DisplayName,Role,Status,CreatedAt'];
     users.forEach(u => {
-      csv.push(`${u.username},${u.password},${u.displayName},${u.role},${u.isActive ? 'Active' : 'Inactive'},${u.createdAt}`);
+      csv.push(
+        `${u.username},${u.password},${u.displayName},${u.role},${
+          u.isActive ? 'Active' : 'Inactive'
+        },${u.createdAt}`
+      );
     });
     const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -268,29 +279,29 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
   const copyUserLink = (username: string) => {
     const baseUrl = window.location.origin + window.location.pathname;
     const url = `${baseUrl}?user=${username}`;
-    
-    // Fallback untuk mobile yang tidak support clipboard API
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        alert(`Link berhasil disalin:\n${url}`);
-      }).catch(() => {
-        // Fallback: buat textarea untuk copy manual
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
           alert(`Link berhasil disalin:\n${url}`);
-        } catch (err) {
-          alert(`Link undangan:\n${url}`);
-        }
-        document.body.removeChild(textArea);
-      });
+        })
+        .catch(() => {
+          const textArea = document.createElement('textarea');
+          textArea.value = url;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            alert(`Link berhasil disalin:\n${url}`);
+          } catch (err) {
+            alert(`Link undangan:\n${url}`);
+          }
+          document.body.removeChild(textArea);
+        });
     } else {
-      // Fallback untuk browser lama
       alert(`Link undangan:\n${url}`);
     }
   };
@@ -385,7 +396,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
           <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
-                <Activity className="w-5 h-5 text-pink-400" />
+                <Users className="w-5 h-5 text-pink-400" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{stats.regularUsers}</p>
@@ -455,14 +466,14 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                   type="text"
                   placeholder="Search by username or display name..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
                 />
               </div>
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={e => setStatusFilter(e.target.value as any)}
               className="px-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
             >
               <option value="all">All Status</option>
@@ -471,7 +482,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
             </select>
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as any)}
+              onChange={e => setRoleFilter(e.target.value as any)}
               className="px-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
             >
               <option value="all">All Roles</option>
@@ -480,7 +491,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
             </select>
             <select
               value={itemsPerPage}
-              onChange={(e) => {
+              onChange={e => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
@@ -506,17 +517,32 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                   <th className="px-4 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedUsers.size === paginatedUsers.length && paginatedUsers.length > 0}
+                      checked={
+                        selectedUsers.size === paginatedUsers.length &&
+                        paginatedUsers.length > 0
+                      }
                       onChange={handleSelectAll}
                       className="rounded"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">Username</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">Display Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">Role</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">Created</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">
+                    Username
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">
+                    Display Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">
+                    Role
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase">
+                    Created
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -540,20 +566,24 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                     </td>
                     <td className="px-4 py-3 text-gray-300">{user.displayName}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        user.role === 'super-admin' 
-                          ? 'bg-purple-500/20 text-purple-300' 
-                          : 'bg-blue-500/20 text-blue-300'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          user.role === 'super-admin'
+                            ? 'bg-purple-500/20 text-purple-300'
+                            : 'bg-blue-500/20 text-blue-300'
+                        }`}
+                      >
                         {user.role}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        user.isActive 
-                          ? 'bg-green-500/20 text-green-300' 
-                          : 'bg-red-500/20 text-red-300'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          user.isActive
+                            ? 'bg-green-500/20 text-green-300'
+                            : 'bg-red-500/20 text-red-300'
+                        }`}
+                      >
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -682,7 +712,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <input
                   type="text"
                   value={newUser.username}
-                  onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                  onChange={e => setNewUser({ ...newUser, username: e.target.value })}
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -691,7 +721,9 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <input
                   type="text"
                   value={newUser.displayName}
-                  onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
+                  onChange={e =>
+                    setNewUser({ ...newUser, displayName: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -700,7 +732,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <input
                   type="password"
                   value={newUser.password}
-                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  onChange={e => setNewUser({ ...newUser, password: e.target.value })}
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -708,7 +740,9 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <label className="block text-sm text-gray-300 mb-1">Role</label>
                 <select
                   value={newUser.role}
-                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as any })}
+                  onChange={e =>
+                    setNewUser({ ...newUser, role: e.target.value as any })
+                  }
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 >
                   <option value="user">User</option>
@@ -754,7 +788,9 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <input
                   type="text"
                   value={editingUser.displayName}
-                  onChange={(e) => setEditingUser({ ...editingUser, displayName: e.target.value })}
+                  onChange={e =>
+                    setEditingUser({ ...editingUser, displayName: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -762,7 +798,9 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <label className="block text-sm text-gray-300 mb-1">Role</label>
                 <select
                   value={editingUser.role}
-                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
+                  onChange={e =>
+                    setEditingUser({ ...editingUser, role: e.target.value as any })
+                  }
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 >
                   <option value="user">User</option>
@@ -794,14 +832,15 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
           <div className="bg-slate-900 border border-white/10 rounded-xl max-w-md w-full p-6">
             <h2 className="text-xl font-bold text-white mb-4">Reset Password</h2>
             <p className="text-gray-400 mb-4">
-              Reset password for user <span className="text-white font-medium">{resetPasswordUser.username}</span>
+              Reset password for user{' '}
+              <span className="text-white font-medium">{resetPasswordUser.username}</span>
             </p>
             <div>
               <label className="block text-sm text-gray-300 mb-1">New Password</label>
               <input
                 type="password"
                 value={resetPassword}
-                onChange={(e) => setResetPassword(e.target.value)}
+                onChange={e => setResetPassword(e.target.value)}
                 className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500"
               />
             </div>
@@ -834,7 +873,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <input
                   type="password"
                   value={myOldPassword}
-                  onChange={(e) => setMyOldPassword(e.target.value)}
+                  onChange={e => setMyOldPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   placeholder="Masukkan password lama"
                 />
@@ -844,17 +883,19 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
                 <input
                   type="password"
                   value={myNewPassword}
-                  onChange={(e) => setMyNewPassword(e.target.value)}
+                  onChange={e => setMyNewPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   placeholder="Minimal 6 karakter"
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-300 mb-1">Konfirmasi Password Baru</label>
+                <label className="block text-sm text-gray-300 mb-1">
+                  Konfirmasi Password Baru
+                </label>
                 <input
                   type="password"
                   value={myConfirmPassword}
-                  onChange={(e) => setMyConfirmPassword(e.target.value)}
+                  onChange={e => setMyConfirmPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-500"
                   placeholder="Ulangi password baru"
                 />
@@ -893,7 +934,7 @@ export default function SuperAdminDashboard({ onLogout }: Props) {
             </p>
             <textarea
               value={bulkImportText}
-              onChange={(e) => setBulkImportText(e.target.value)}
+              onChange={e => setBulkImportText(e.target.value)}
               placeholder="user1,password1,User One&#10;user2,password2,User Two&#10;user3,password3,User Three"
               rows={10}
               className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 font-mono text-sm"
